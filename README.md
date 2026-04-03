@@ -1,59 +1,90 @@
-# FinFlowAngular
+# Fin Flow — Angular Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.5.
+Personal finance management application built with Angular 21. Connects to the [fin-flow-api](https://github.com/yusney/fin-flow-api) backend.
 
-## Development server
+## Features
 
-To start a local development server, run:
+- **Dashboard** — Overview of balance, active subscriptions, recent transactions, and budget progress in a responsive bento grid layout
+- **Transactions** — Full CRUD with filters (search, type, category, date range), income/expense statistics, and current-month defaults
+- **Budgets** — Monthly budget tracking per category with progress bars and status indicators (on track / warning / exceeded)
+- **Subscriptions** — Full CRUD with edit history (SCD Type 2 versioning), active/inactive toggle, and delete confirmation. Supports monthly and annual billing frequencies
+- **Settings** — User profile view and preferences (currency, date format, language, notifications)
+- **Authentication** — JWT-based login with automatic logout on token expiration and route protection via auth guard
+- **Internationalization** — Full English and Spanish support via Transloco
 
-```bash
-ng serve
-```
+## Tech Stack
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+| Layer | Technology |
+|-------|-----------|
+| Framework | Angular 21 (standalone components, Signals) |
+| Styling | Tailwind CSS v4 |
+| Reactive | RxJS 7 |
+| i18n | Transloco 8 |
+| Testing | Vitest |
+| Package manager | pnpm |
+| Language | TypeScript 5.9 |
 
-## Code scaffolding
+## Prerequisites
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Node.js 20+
+- pnpm 10+
+- [fin-flow-api](https://github.com/yusney/fin-flow-api) running on `http://localhost:3000`
 
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Getting Started
 
 ```bash
-ng test
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm start
 ```
 
-## Running end-to-end tests
+Open `http://localhost:4200` in your browser.
 
-For end-to-end (e2e) testing, run:
+## Available Scripts
 
 ```bash
-ng e2e
+pnpm start          # Development server
+pnpm build          # Production build
+pnpm test           # Run tests with Vitest
+pnpm watch          # Watch mode build
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## Project Structure
 
-## Additional Resources
+```
+src/
+├── app/
+│   ├── core/
+│   │   ├── guards/          # Auth guard
+│   │   ├── interceptors/    # JWT auth interceptor
+│   │   └── services/        # Auth, Transaction, Budget, Subscription, Category services
+│   ├── features/
+│   │   ├── dashboard/       # Dashboard page + layout shell + sidebar
+│   │   ├── transactions/    # Transactions CRUD page
+│   │   ├── budgets/         # Budgets CRUD page
+│   │   ├── subscriptions/   # Subscriptions CRUD page
+│   │   ├── settings/        # Settings page
+│   │   └── login/           # Login page
+│   └── shared/
+│       └── models/          # TypeScript interfaces (Transaction, Budget, Subscription, User)
+├── environments/            # API URL configuration per environment
+└── public/
+    └── i18n/                # Translation files (en.json, es.json)
+```
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Environment Configuration
+
+| File | Purpose |
+|------|---------|
+| `src/environments/environment.ts` | Development — API at `http://localhost:3000/api` |
+| `src/environments/environment.prod.ts` | Production — set your API URL here |
+
+## Architecture Notes
+
+- All components are **standalone** — no NgModules
+- State management via **Angular Signals** (`signal()`, `computed()`, `toSignal()`)
+- Routes are **lazy-loaded** per feature
+- JWT token is injected automatically via an HTTP interceptor
+- Expired tokens trigger automatic logout and redirect to `/login`
