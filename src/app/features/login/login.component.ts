@@ -8,68 +8,48 @@ import { AuthService } from '../../core/services/auth.service';
   selector: 'app-login',
   imports: [ReactiveFormsModule],
   template: `
-    <div
-      class="min-h-screen bg-background flex items-center justify-center p-6"
-    >
+    <div class="min-h-screen bg-surface-container flex items-center justify-center p-6">
       <div class="w-full max-w-sm">
         <!-- Logo -->
-        <div class="text-center mb-12">
-          <span
-            class="text-3xl font-bold font-headline text-on-surface tracking-tight"
-          >
-            fin-flow
-          </span>
-          <p class="text-sm text-on-surface-variant mt-2">
-            The Digital Ledger
-          </p>
+        <div class="flex flex-col items-center mb-10">
+          <img src="/logo.svg" alt="FinFlow" class="w-16 h-16 mb-4" />
+          <h1 class="text-2xl font-bold font-headline text-on-surface tracking-tight">fin-flow</h1>
+          <p class="text-sm text-on-surface-variant mt-1">The Digital Ledger</p>
         </div>
 
         <!-- Card -->
-        <div class="bg-surface-container-low rounded-[var(--radius-card)] p-8 shadow-[var(--shadow-elevated)]">
-          <h1 class="text-xl font-bold font-headline text-on-surface mb-2">
-            Welcome back
-          </h1>
-          <p class="text-sm text-on-surface-variant mb-8">
-            Sign in to your premium ledger
-          </p>
+        <div
+          class="bg-surface-container-lowest rounded-[var(--radius-card)] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.1)] border border-outline-variant/40"
+        >
+          <h2 class="text-lg font-semibold font-headline text-on-surface mb-1">Welcome back</h2>
+          <p class="text-sm text-on-surface-variant mb-6">Sign in to your account</p>
 
           @if (error()) {
             <div
-              class="bg-error-container text-on-error-container text-sm rounded-[var(--radius-xl)] px-4 py-3 mb-6"
+              class="flex items-center gap-2 bg-error-container text-on-error-container text-sm rounded-[var(--radius-xl)] px-4 py-3 mb-6"
             >
+              <span class="material-symbols-outlined text-[18px]">error</span>
               {{ error() }}
             </div>
           }
 
-          <form
-            [formGroup]="form"
-            (ngSubmit)="onSubmit()"
-            class="flex flex-col gap-y-5"
-          >
+          <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
             <!-- Email -->
-            <div class="flex flex-col gap-y-2">
-              <label
-                for="email"
-                class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
-              >
-                Email
-              </label>
+            <div class="flex flex-col gap-1.5">
+              <label for="email" class="text-xs font-medium text-on-surface-variant"> Email </label>
               <input
                 id="email"
                 type="email"
                 formControlName="email"
                 autocomplete="email"
                 placeholder="alex@example.com"
-                class="w-full bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
               />
             </div>
 
             <!-- Password -->
-            <div class="flex flex-col gap-y-2">
-              <label
-                for="password"
-                class="text-xs font-semibold uppercase tracking-widest text-on-surface-variant"
-              >
+            <div class="flex flex-col gap-1.5">
+              <label for="password" class="text-xs font-medium text-on-surface-variant">
                 Password
               </label>
               <input
@@ -78,7 +58,7 @@ import { AuthService } from '../../core/services/auth.service';
                 formControlName="password"
                 autocomplete="current-password"
                 placeholder="••••••••"
-                class="w-full bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
               />
             </div>
 
@@ -86,10 +66,15 @@ import { AuthService } from '../../core/services/auth.service';
             <button
               type="submit"
               [disabled]="form.invalid || loading()"
-              class="w-full bg-primary hover:bg-primary-container text-on-primary font-bold rounded-[var(--radius-button)] px-6 py-3 text-sm transition-all shadow-lg shadow-primary/10 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+              class="w-full bg-primary hover:bg-primary-container text-on-primary font-semibold rounded-[var(--radius-button)] px-6 py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               @if (loading()) {
-                Signing in…
+                <span class="flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-[18px] animate-spin"
+                    >progress_activity</span
+                  >
+                  Signing in…
+                </span>
               } @else {
                 Sign In
               }
@@ -99,7 +84,8 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- Demo hint -->
         <p class="text-center text-xs text-on-surface-variant mt-6">
-          Demo: demo@finflow.com / demo123
+          Demo: <span class="font-medium">demo&#64;finflow.com</span> /
+          <span class="font-medium">demo123</span>
         </p>
       </div>
     </div>
@@ -133,8 +119,7 @@ export class LoginComponent {
       },
       error: (err: unknown) => {
         this.loading.set(false);
-        const msg =
-          err instanceof Error ? err.message : 'Invalid credentials. Try again.';
+        const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
         this.error.set(msg);
       },
     });

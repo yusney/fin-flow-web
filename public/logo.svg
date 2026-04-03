@@ -1,0 +1,9 @@
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Círculo de suscripción recurrente -->
+  <path d="M100 30C61.3401 30 30 61.3401 30 100C30 138.66 61.3401 170 100 170C125.422 170 147.674 156.447 160 136" stroke="#2563EB" stroke-width="20" stroke-linecap="round"/>
+  <path d="M140 136L160 136L166 156" stroke="#2563EB" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- F en el centro -->
+  <path d="M85 70V130" stroke="#10B981" stroke-width="20" stroke-linecap="round"/>
+  <path d="M85 70H120" stroke="#10B981" stroke-width="20" stroke-linecap="round"/>
+  <path d="M85 100H110" stroke="#10B981" stroke-width="20" stroke-linecap="round"/>
+</svg>
