@@ -244,6 +244,26 @@ Run `npx prettier --write .` before committing.
 
 ---
 
+## Git Conventions
+
+### Commit Messages
+
+- **All commit messages MUST be in English**
+- Use Conventional Commits format: `type: description`
+- Types: `feat`, `fix`, `docs`, `config`, `refactor`, `test`, `chore`
+- Keep subject line under 72 characters
+- Use imperative mood: "add feature" not "added feature"
+
+```bash
+# ✅ Correct
+git commit -m "feat: add user authentication with JWT"
+
+# ❌ Avoid
+git commit -m "Agregué autenticación de usuario"
+```
+
+---
+
 ## File Structure
 
 ```
