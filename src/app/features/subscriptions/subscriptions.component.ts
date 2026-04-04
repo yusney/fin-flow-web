@@ -365,7 +365,7 @@ import { Category } from '../../shared/models/transaction.model';
           (click)="closeModal()"
         >
           <div
-            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
             (click)="$event.stopPropagation()"
           >
             <div class="flex items-center justify-between p-6 border-b border-outline-variant">
