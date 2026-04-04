@@ -1,7 +1,15 @@
-import { Component, computed, inject, signal, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
@@ -28,6 +36,7 @@ interface AppSettings {
 @Component({
   selector: 'app-settings',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, FormsModule, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
@@ -344,7 +353,7 @@ interface AppSettings {
                   [class.bg-surface-container-high]="!settings().emailNotifications"
                 >
                   <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
+                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
                     [class.translate-x-7]="settings().emailNotifications"
                     [class.translate-x-1]="!settings().emailNotifications"
                   ></span>
@@ -368,7 +377,7 @@ interface AppSettings {
                   [class.bg-surface-container-high]="!settings().pushNotifications"
                 >
                   <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
+                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
                     [class.translate-x-7]="settings().pushNotifications"
                     [class.translate-x-1]="!settings().pushNotifications"
                   ></span>
@@ -390,7 +399,7 @@ interface AppSettings {
                   [class.bg-surface-container-high]="!settings().budgetAlerts"
                 >
                   <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
+                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
                     [class.translate-x-7]="settings().budgetAlerts"
                     [class.translate-x-1]="!settings().budgetAlerts"
                   ></span>
@@ -414,7 +423,7 @@ interface AppSettings {
                   [class.bg-surface-container-high]="!settings().subscriptionReminders"
                 >
                   <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
+                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
                     [class.translate-x-7]="settings().subscriptionReminders"
                     [class.translate-x-1]="!settings().subscriptionReminders"
                   ></span>
