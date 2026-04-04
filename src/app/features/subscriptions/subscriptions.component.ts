@@ -44,7 +44,9 @@ import { Category } from '../../shared/models/transaction.model';
               <div
                 class="bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-card)] shadow-[var(--shadow-card)]"
               >
-                <div class="text-xs text-on-surface-variant uppercase tracking-wider">{{ t('subscriptions.monthly') }}</div>
+                <div class="text-xs text-on-surface-variant uppercase tracking-wider">
+                  {{ t('subscriptions.monthly') }}
+                </div>
                 <div class="text-lg font-bold text-on-surface tabular-nums">
                   {{ summary().totalMonthly | currency: 'USD' : 'symbol' : '1.0-0' }}
                 </div>
@@ -52,7 +54,9 @@ import { Category } from '../../shared/models/transaction.model';
               <div
                 class="bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-card)] shadow-[var(--shadow-card)]"
               >
-                <div class="text-xs text-on-surface-variant uppercase tracking-wider">{{ t('subscriptions.yearly') }}</div>
+                <div class="text-xs text-on-surface-variant uppercase tracking-wider">
+                  {{ t('subscriptions.yearly') }}
+                </div>
                 <div class="text-lg font-bold text-tertiary tabular-nums">
                   {{ summary().totalYearly | currency: 'USD' : 'symbol' : '1.0-0' }}
                 </div>
@@ -60,7 +64,9 @@ import { Category } from '../../shared/models/transaction.model';
               <div
                 class="bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-card)] shadow-[var(--shadow-card)]"
               >
-                <div class="text-xs text-on-surface-variant uppercase tracking-wider">{{ t('subscriptions.active') }}</div>
+                <div class="text-xs text-on-surface-variant uppercase tracking-wider">
+                  {{ t('subscriptions.active') }}
+                </div>
                 <div class="text-lg font-bold text-secondary tabular-nums">
                   {{ summary().activeCount }}
                 </div>
@@ -73,15 +79,20 @@ import { Category } from '../../shared/models/transaction.model';
       <!-- Upcoming Payments Alert -->
       @if (upcomingPayments().length > 0) {
         <div class="px-4 lg:px-8 pt-4">
-          <div class="bg-primary-container/20 border border-primary/20 rounded-[var(--radius-card)] p-4">
+          <div
+            class="bg-primary-container/20 border border-primary/20 rounded-[var(--radius-card)] p-4"
+          >
             <div class="flex items-center gap-2 mb-2">
               <span class="material-symbols-outlined text-primary">notifications</span>
-              <span class="font-semibold text-primary">{{ t('subscriptions.upcomingPayments') }}</span>
+              <span class="font-semibold text-primary">{{
+                t('subscriptions.upcomingPayments')
+              }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
               @for (sub of upcomingPayments().slice(0, 3); track sub.id) {
                 <span class="text-sm bg-surface-container-lowest px-3 py-1 rounded-full">
-                  {{ sub.description }} ({{ getDaysUntilBilling(sub) }} {{ t('subscriptions.days') }})
+                  {{ sub.description }} ({{ getDaysUntilBilling(sub) }}
+                  {{ t('subscriptions.days') }})
                 </span>
               }
               @if (upcomingPayments().length > 3) {
@@ -172,7 +183,9 @@ import { Category } from '../../shared/models/transaction.model';
         <!-- Loading State -->
         @if (isLoading()) {
           <div class="flex justify-center py-12">
-            <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <div
+              class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+            ></div>
           </div>
         }
 
@@ -180,7 +193,9 @@ import { Category } from '../../shared/models/transaction.model';
         @if (!isLoading() && filteredSubscriptions().length === 0) {
           <div class="bg-surface-container-low rounded-[var(--radius-card)] p-12 text-center">
             <span class="material-symbols-outlined text-[48px] text-outline mb-4">repeat</span>
-            <h3 class="text-lg font-bold font-headline text-on-surface mb-2">{{ t('subscriptions.emptyTitle') }}</h3>
+            <h3 class="text-lg font-bold font-headline text-on-surface mb-2">
+              {{ t('subscriptions.emptyTitle') }}
+            </h3>
             <p class="text-sm text-on-surface-variant mb-4">
               {{ t('subscriptions.emptySubtitle') }}
             </p>
@@ -200,7 +215,9 @@ import { Category } from '../../shared/models/transaction.model';
               <!-- Header -->
               <div class="flex items-start justify-between mb-4">
                 <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center">
+                  <div
+                    class="w-12 h-12 rounded-full bg-surface-container-high flex items-center justify-center"
+                  >
                     <span class="material-symbols-outlined text-[24px] text-on-surface-variant">
                       {{ subscription.type === 'DIGITAL_SERVICE' ? 'cloud' : 'event_repeat' }}
                     </span>
@@ -210,7 +227,9 @@ import { Category } from '../../shared/models/transaction.model';
                       {{ subscription.description }}
                     </h3>
                     @if (subscription.category) {
-                      <p class="text-xs text-on-surface-variant">{{ subscription.category.name }}</p>
+                      <p class="text-xs text-on-surface-variant">
+                        {{ subscription.category.name }}
+                      </p>
                     }
                   </div>
                 </div>
@@ -223,7 +242,9 @@ import { Category } from '../../shared/models/transaction.model';
                   [class.bg-surface-container-high]="!subscription.isActive"
                   [class.text-on-surface-variant]="!subscription.isActive"
                 >
-                  {{ subscription.isActive ? t('subscriptions.active') : t('subscriptions.paused') }}
+                  {{
+                    subscription.isActive ? t('subscriptions.active') : t('subscriptions.paused')
+                  }}
                 </span>
               </div>
 
@@ -234,12 +255,17 @@ import { Category } from '../../shared/models/transaction.model';
                     {{ subscription.amount | currency: 'USD' : 'symbol' : '1.2-2' }}
                   </div>
                   <div class="text-xs text-on-surface-variant">
-                    {{ subscription.frequency === 'ANNUAL' ? t('subscriptions.yearly') : t('subscriptions.monthly') }}
+                    {{
+                      subscription.frequency === 'ANNUAL'
+                        ? t('subscriptions.yearly')
+                        : t('subscriptions.monthly')
+                    }}
                   </div>
                 </div>
                 <div class="text-right">
                   <div class="text-sm font-medium text-on-surface-variant">
-                    {{ getMonthlyCost(subscription) | currency: 'USD' : 'symbol' : '1.0-0' }}{{ t('subscriptions.perMonth') }}
+                    {{ getMonthlyCost(subscription) | currency: 'USD' : 'symbol' : '1.0-0'
+                    }}{{ t('subscriptions.perMonth') }}
                   </div>
                 </div>
               </div>
@@ -248,7 +274,9 @@ import { Category } from '../../shared/models/transaction.model';
               <div
                 class="flex items-center gap-2 text-sm mb-4 p-3 bg-surface-container-low rounded-[var(--radius-input)]"
               >
-                <span class="material-symbols-outlined text-[18px] text-on-surface-variant">event</span>
+                <span class="material-symbols-outlined text-[18px] text-on-surface-variant"
+                  >event</span
+                >
                 <span class="text-on-surface-variant">{{ t('subscriptions.billingDay') }}:</span>
                 <span
                   class="font-medium ml-auto"
@@ -256,7 +284,9 @@ import { Category } from '../../shared/models/transaction.model';
                 >
                   {{ t('subscriptions.day') }} {{ subscription.billingDay }}
                   @if (subscription.isActive) {
-                    <span class="text-xs ml-1">({{ getDaysUntilBilling(subscription) }} {{ t('subscriptions.days') }})</span>
+                    <span class="text-xs ml-1"
+                      >({{ getDaysUntilBilling(subscription) }} {{ t('subscriptions.days') }})</span
+                    >
                   }
                 </span>
               </div>
@@ -292,12 +322,16 @@ import { Category } from '../../shared/models/transaction.model';
                   [class.text-on-primary-container]="!subscription.isActive"
                 >
                   @if (togglingId() === subscription.id) {
-                    <div class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                      class="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"
+                    ></div>
                   } @else {
                     <span class="material-symbols-outlined text-[18px]">
                       {{ subscription.isActive ? 'pause' : 'play_arrow' }}
                     </span>
-                    {{ subscription.isActive ? t('subscriptions.pause') : t('subscriptions.resume') }}
+                    {{
+                      subscription.isActive ? t('subscriptions.pause') : t('subscriptions.resume')
+                    }}
                   }
                 </button>
 
@@ -336,7 +370,11 @@ import { Category } from '../../shared/models/transaction.model';
           >
             <div class="flex items-center justify-between p-6 border-b border-outline-variant">
               <h2 class="text-xl font-bold font-headline text-on-surface">
-                {{ modalMode() === 'create' ? t('subscriptions.modalTitleCreate') : t('subscriptions.modalTitleEdit') }}
+                {{
+                  modalMode() === 'create'
+                    ? t('subscriptions.modalTitleCreate')
+                    : t('subscriptions.modalTitleEdit')
+                }}
               </h2>
               <button
                 (click)="closeModal()"
@@ -349,7 +387,9 @@ import { Category } from '../../shared/models/transaction.model';
             <form (ngSubmit)="saveSubscription()" class="p-6 space-y-4">
               <!-- Description (name) -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldName') }}
                 </label>
                 <input
@@ -364,11 +404,15 @@ import { Category } from '../../shared/models/transaction.model';
 
               <!-- Amount -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldAmount') }}
                 </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
+                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
+                    >$</span
+                  >
                   <input
                     type="number"
                     [(ngModel)]="formData.amount"
@@ -384,7 +428,9 @@ import { Category } from '../../shared/models/transaction.model';
 
               <!-- Category — shows name, sends UUID -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldCategory') }}
                 </label>
                 <select
@@ -402,7 +448,9 @@ import { Category } from '../../shared/models/transaction.model';
 
               <!-- Frequency -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldFrequency') }}
                 </label>
                 <div class="flex gap-3">
@@ -424,7 +472,9 @@ import { Category } from '../../shared/models/transaction.model';
 
               <!-- Billing Day -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldBillingDay') }}
                 </label>
                 <input
@@ -442,7 +492,9 @@ import { Category } from '../../shared/models/transaction.model';
               <!-- Start Date (hidden in edit mode) -->
               @if (modalMode() === 'create') {
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                  <label
+                    class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                  >
                     {{ t('subscriptions.fieldStartDate') }}
                   </label>
                   <input
@@ -457,7 +509,9 @@ import { Category } from '../../shared/models/transaction.model';
 
               <!-- Type -->
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   {{ t('subscriptions.fieldType') }}
                 </label>
                 <div class="flex gap-3">
@@ -480,7 +534,9 @@ import { Category } from '../../shared/models/transaction.model';
               <!-- Service URL (only for DIGITAL_SERVICE) -->
               @if (formData.type === 'DIGITAL_SERVICE') {
                 <div>
-                  <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                  <label
+                    class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                  >
                     {{ t('subscriptions.fieldServiceUrl') }}
                   </label>
                   <input
@@ -516,7 +572,9 @@ import { Category } from '../../shared/models/transaction.model';
                   class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   @if (isSaving()) {
-                    <div class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                      class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+                    ></div>
                   }
                   {{ modalMode() === 'create' ? t('common.add') : t('common.save') }}
                 </button>
@@ -533,14 +591,16 @@ import { Category } from '../../shared/models/transaction.model';
           (click)="closeHistoryModal()"
         >
           <div
-            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
             (click)="$event.stopPropagation()"
           >
             <div class="flex items-center justify-between p-6 border-b border-outline-variant">
               <h2 class="text-xl font-bold font-headline text-on-surface">
                 {{ t('subscriptions.historyTitle') }}
                 @if (historySubscription()) {
-                  <span class="font-normal text-on-surface-variant"> — {{ historySubscription()!.description }}</span>
+                  <span class="font-normal text-on-surface-variant">
+                    — {{ historySubscription()!.description }}</span
+                  >
                 }
               </h2>
               <button
@@ -554,10 +614,14 @@ import { Category } from '../../shared/models/transaction.model';
             <div class="p-6">
               @if (isLoadingHistory()) {
                 <div class="flex justify-center py-8">
-                  <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  <div
+                    class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                  ></div>
                 </div>
               } @else if (historyVersions().length === 0) {
-                <p class="text-sm text-on-surface-variant text-center py-8">{{ t('subscriptions.historyEmpty') }}</p>
+                <p class="text-sm text-on-surface-variant text-center py-8">
+                  {{ t('subscriptions.historyEmpty') }}
+                </p>
               } @else {
                 <div class="flex flex-col gap-2">
                   @for (version of historyVersions(); track version.id; let i = $index) {
@@ -571,17 +635,29 @@ import { Category } from '../../shared/models/transaction.model';
                           <span class="font-bold text-on-surface tabular-nums">
                             {{ version.amount | currency: 'USD' : 'symbol' : '1.2-2' }}
                           </span>
-                          <span class="text-xs text-on-surface-variant">· {{ version.frequency === 'ANNUAL' ? t('subscriptions.yearly') : t('subscriptions.monthly') }}</span>
+                          <span class="text-xs text-on-surface-variant"
+                            >·
+                            {{
+                              version.frequency === 'ANNUAL'
+                                ? t('subscriptions.yearly')
+                                : t('subscriptions.monthly')
+                            }}</span
+                          >
                         </div>
                         <div class="text-xs text-on-surface-variant">
-                          {{ version.startDate }} → {{ version.endDate ?? t('subscriptions.historyActiveBadge') }}
+                          {{ version.startDate }} →
+                          {{ version.endDate ?? t('subscriptions.historyActiveBadge') }}
                         </div>
                         @if (version.description) {
-                          <div class="text-xs text-on-surface-variant mt-1 truncate">{{ version.description }}</div>
+                          <div class="text-xs text-on-surface-variant mt-1 truncate">
+                            {{ version.description }}
+                          </div>
                         }
                       </div>
                       @if (version.endDate === null) {
-                        <span class="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-secondary-container/20 text-secondary">
+                        <span
+                          class="shrink-0 text-xs px-2 py-0.5 rounded-full font-medium bg-secondary-container/20 text-secondary"
+                        >
                           {{ t('subscriptions.active') }}
                         </span>
                       }
@@ -601,16 +677,20 @@ import { Category } from '../../shared/models/transaction.model';
           (click)="closeDeleteModal()"
         >
           <div
-            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-md shadow-[var(--shadow-elevated)]"
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
             (click)="$event.stopPropagation()"
           >
             <div class="p-6 text-center">
-              <span class="material-symbols-outlined text-[48px] text-tertiary mb-4 block">delete_forever</span>
+              <span class="material-symbols-outlined text-[48px] text-tertiary mb-4 block"
+                >delete_forever</span
+              >
               <h2 class="text-xl font-bold font-headline text-on-surface mb-2">
                 {{ t('subscriptions.deleteTitle') }}
               </h2>
               <p class="text-sm text-on-surface-variant mb-6">
-                {{ t('subscriptions.deleteConfirm', { name: subscriptionToDelete()?.description }) }}
+                {{
+                  t('subscriptions.deleteConfirm', { name: subscriptionToDelete()?.description })
+                }}
               </p>
               <div class="flex gap-3">
                 <button
@@ -627,7 +707,9 @@ import { Category } from '../../shared/models/transaction.model';
                   class="flex-1 px-4 py-3 bg-tertiary text-on-tertiary font-semibold rounded-[var(--radius-button)] hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   @if (isDeleting()) {
-                    <div class="w-4 h-4 border-2 border-on-tertiary border-t-transparent rounded-full animate-spin"></div>
+                    <div
+                      class="w-4 h-4 border-2 border-on-tertiary border-t-transparent rounded-full animate-spin"
+                    ></div>
                   }
                   {{ t('common.delete') }}
                 </button>
@@ -652,13 +734,23 @@ import { Category } from '../../shared/models/transaction.model';
       }
     </ng-container>
   `,
-  styles: [`
-    @keyframes fade-in {
-      from { opacity: 0; transform: translate(-50%, 10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-    .animate-fade-in { animation: fade-in 200ms ease-out forwards; }
-  `],
+  styles: [
+    `
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 10px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+      .animate-fade-in {
+        animation: fade-in 200ms ease-out forwards;
+      }
+    `,
+  ],
 })
 export class SubscriptionsComponent {
   private readonly subscriptionService = inject(SubscriptionService);
@@ -777,9 +869,15 @@ export class SubscriptionsComponent {
       this.selectedFrequency() !== 'all',
   );
 
-  onSearchChange(value: string): void { this.searchQuery.set(value); }
-  onStatusChange(value: string): void { this.selectedStatus.set(value as 'active' | 'paused' | 'all'); }
-  onFrequencyChange(value: string): void { this.selectedFrequency.set(value as SubscriptionFrequency | 'all'); }
+  onSearchChange(value: string): void {
+    this.searchQuery.set(value);
+  }
+  onStatusChange(value: string): void {
+    this.selectedStatus.set(value as 'active' | 'paused' | 'all');
+  }
+  onFrequencyChange(value: string): void {
+    this.selectedFrequency.set(value as SubscriptionFrequency | 'all');
+  }
 
   clearFilters(): void {
     this.searchQuery.set('');
@@ -861,17 +959,33 @@ export class SubscriptionsComponent {
   }
 
   saveSubscription(): void {
-    if (!this.formData.description.trim()) { this.formError.set(this.transloco.translate('subscriptions.errorName')); return; }
-    if (this.formData.amount <= 0) { this.formError.set(this.transloco.translate('subscriptions.errorAmount')); return; }
-    if (!this.formData.categoryId) { this.formError.set(this.transloco.translate('subscriptions.errorCategory')); return; }
-    if (!this.formData.billingDay || this.formData.billingDay < 1 || this.formData.billingDay > 31) {
-      this.formError.set(this.transloco.translate('subscriptions.errorBillingDay')); return;
+    if (!this.formData.description.trim()) {
+      this.formError.set(this.transloco.translate('subscriptions.errorName'));
+      return;
+    }
+    if (this.formData.amount <= 0) {
+      this.formError.set(this.transloco.translate('subscriptions.errorAmount'));
+      return;
+    }
+    if (!this.formData.categoryId) {
+      this.formError.set(this.transloco.translate('subscriptions.errorCategory'));
+      return;
+    }
+    if (
+      !this.formData.billingDay ||
+      this.formData.billingDay < 1 ||
+      this.formData.billingDay > 31
+    ) {
+      this.formError.set(this.transloco.translate('subscriptions.errorBillingDay'));
+      return;
     }
     if (this.modalMode() === 'create' && !this.formData.startDate) {
-      this.formError.set(this.transloco.translate('subscriptions.errorStartDate')); return;
+      this.formError.set(this.transloco.translate('subscriptions.errorStartDate'));
+      return;
     }
     if (this.formData.type === 'DIGITAL_SERVICE' && !this.formData.serviceUrl.trim()) {
-      this.formError.set(this.transloco.translate('subscriptions.errorServiceUrl')); return;
+      this.formError.set(this.transloco.translate('subscriptions.errorServiceUrl'));
+      return;
     }
 
     this.isSaving.set(true);
@@ -897,7 +1011,9 @@ export class SubscriptionsComponent {
         },
         error: (error) => {
           this.isSaving.set(false);
-          this.formError.set(error.error?.message || this.transloco.translate('subscriptions.toastUpdateError'));
+          this.formError.set(
+            error.error?.message || this.transloco.translate('subscriptions.toastUpdateError'),
+          );
         },
       });
     } else {
@@ -921,7 +1037,9 @@ export class SubscriptionsComponent {
         },
         error: (error) => {
           this.isSaving.set(false);
-          this.formError.set(error.error?.message || this.transloco.translate('subscriptions.toastCreateError'));
+          this.formError.set(
+            error.error?.message || this.transloco.translate('subscriptions.toastCreateError'),
+          );
         },
       });
     }
@@ -952,7 +1070,9 @@ export class SubscriptionsComponent {
       next: () => {
         this.togglingId.set(null);
         this.loadData();
-        const key = subscription.isActive ? 'subscriptions.toastPaused' : 'subscriptions.toastResumed';
+        const key = subscription.isActive
+          ? 'subscriptions.toastPaused'
+          : 'subscriptions.toastResumed';
         this.showToast(this.transloco.translate(key), 'success');
       },
       error: () => {
