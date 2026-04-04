@@ -90,7 +90,7 @@ const user: any = { ... };
 
 ## Angular Patterns
 
-> **This project targets Angular 17+ (currently v20+).** All patterns below reflect the modern Angular API.
+> **This project uses Angular 21 (v21.2).** All patterns below reflect the modern Angular API.
 > Reviewers and AI tools must NOT flag Angular 17+ APIs as violations.
 
 ### Dependency Injection
