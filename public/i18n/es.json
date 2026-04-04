@@ -251,6 +251,11 @@
     "appVersion": "Versión de la App",
     "builtWith": "Hecho con",
     "featureNotImplemented": "Esta función aún no está implementada.",
-    "version": "FinFlow v{{ version }}"
+    "version": "FinFlow v{{ version }}",
+    "toastLoadError": "Error al cargar los ajustes",
+    "toastSaved": "Ajustes guardados",
+    "toastSaveError": "Error al guardar los ajustes",
+    "exportSuccess": "Datos exportados correctamente",
+    "clearLocalDataSuccess": "Datos locales eliminados"
   }
 }

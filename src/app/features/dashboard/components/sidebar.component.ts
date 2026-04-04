@@ -3,7 +3,6 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { LanguageService, Language } from '../../../core/services/language.service';
 
 interface NavItem {
   key: string;
@@ -64,22 +63,6 @@ interface NavItem {
           </a>
         </nav>
 
-        <!-- Language Switcher -->
-        <div class="flex items-center gap-2">
-          @for (lang of langService.availableLanguages; track lang.code) {
-            <button
-              (click)="setLang(lang.code)"
-              class="flex-1 py-1.5 text-xs font-bold rounded-[var(--radius-button)] transition-all"
-              [class.bg-primary]="activeLang() === lang.code"
-              [class.text-on-primary]="activeLang() === lang.code"
-              [class.bg-surface-container-high]="activeLang() !== lang.code"
-              [class.text-on-surface-variant]="activeLang() !== lang.code"
-            >
-              {{ lang.label }}
-            </button>
-          }
-        </div>
-
         <!-- User Profile -->
         <div class="pt-2">
           <div class="text-xs uppercase tracking-widest text-outline mb-2">
@@ -105,19 +88,12 @@ interface NavItem {
 })
 export class SidebarComponent {
   private readonly auth = inject(AuthService);
-  readonly langService = inject(LanguageService);
 
   readonly currentUser = this.auth.currentUser;
-  readonly activeLang = signal<Language>(this.langService.getActiveLang());
 
   // Mobile controls
   readonly isOpen = input<boolean>(true);
   readonly close = output<void>();
-
-  setLang(lang: Language): void {
-    this.langService.setLanguage(lang);
-    this.activeLang.set(lang);
-  }
 
   readonly navItems: NavItem[] = [
     { key: 'dashboard', icon: 'dashboard', route: '/dashboard' },

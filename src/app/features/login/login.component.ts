@@ -2,7 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { switchMap } from 'rxjs';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { LanguageService } from '../../core/services/language.service';
 
 @Component({
   selector: 'app-login',
@@ -104,6 +107,8 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly preferencesService = inject(PreferencesService);
+  private readonly languageService = inject(LanguageService);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -121,16 +126,22 @@ export class LoginComponent {
 
     const { email, password } = this.form.getRawValue();
 
-    this.auth.login(email, password).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err: unknown) => {
-        this.loading.set(false);
-        const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
-        this.error.set(msg);
-      },
-    });
+    this.auth
+      .login(email, password)
+      .pipe(switchMap(() => this.preferencesService.getPreferences()))
+      .subscribe({
+        next: (prefs) => {
+          if (prefs) {
+            this.languageService.setLanguage(prefs.language);
+          }
+          this.loading.set(false);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err: unknown) => {
+          this.loading.set(false);
+          const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
+          this.error.set(msg);
+        },
+      });
   }
 }

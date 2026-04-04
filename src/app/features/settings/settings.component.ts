@@ -2,13 +2,23 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { LanguageService } from '../../core/services/language.service';
+import { UserService } from '../../core/services/user.service';
+import { UpdateProfileDto, User } from '../../shared/models/user.model';
+import {
+  Currency,
+  DateFormat,
+  PreferencesLanguage,
+  UserPreferences,
+} from '../../shared/models/user-preferences.model';
 
 interface AppSettings {
-  currency: string;
-  dateFormat: string;
-  language: string;
+  currency: Currency;
+  dateFormat: DateFormat;
+  language: PreferencesLanguage;
   emailNotifications: boolean;
   pushNotifications: boolean;
   budgetAlerts: boolean;
@@ -98,14 +108,13 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.currency"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().currency"
+                  (ngModelChange)="updateSetting('currency', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[120px]"
                 >
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                  <option value="JPY">JPY (¥)</option>
                   <option value="ARS">ARS ($)</option>
                 </select>
               </div>
@@ -121,13 +130,13 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.dateFormat"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().dateFormat"
+                  (ngModelChange)="updateSetting('dateFormat', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
-                  <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                  <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                  <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                 </select>
               </div>
 
@@ -140,8 +149,8 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.language"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().language"
+                  (ngModelChange)="updateSetting('language', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
                   <option value="en">English</option>
@@ -176,13 +185,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('emailNotifications')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.emailNotifications"
-                  [class.bg-surface-container-high]="!settings.emailNotifications"
+                  [class.bg-secondary]="settings().emailNotifications"
+                  [class.bg-surface-container-high]="!settings().emailNotifications"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.emailNotifications"
-                    [class.translate-x-1]="!settings.emailNotifications"
+                    [class.translate-x-7]="settings().emailNotifications"
+                    [class.translate-x-1]="!settings().emailNotifications"
                   ></span>
                 </button>
               </div>
@@ -200,13 +209,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('pushNotifications')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.pushNotifications"
-                  [class.bg-surface-container-high]="!settings.pushNotifications"
+                  [class.bg-secondary]="settings().pushNotifications"
+                  [class.bg-surface-container-high]="!settings().pushNotifications"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.pushNotifications"
-                    [class.translate-x-1]="!settings.pushNotifications"
+                    [class.translate-x-7]="settings().pushNotifications"
+                    [class.translate-x-1]="!settings().pushNotifications"
                   ></span>
                 </button>
               </div>
@@ -222,13 +231,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('budgetAlerts')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.budgetAlerts"
-                  [class.bg-surface-container-high]="!settings.budgetAlerts"
+                  [class.bg-secondary]="settings().budgetAlerts"
+                  [class.bg-surface-container-high]="!settings().budgetAlerts"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.budgetAlerts"
-                    [class.translate-x-1]="!settings.budgetAlerts"
+                    [class.translate-x-7]="settings().budgetAlerts"
+                    [class.translate-x-1]="!settings().budgetAlerts"
                   ></span>
                 </button>
               </div>
@@ -246,13 +255,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('subscriptionReminders')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.subscriptionReminders"
-                  [class.bg-surface-container-high]="!settings.subscriptionReminders"
+                  [class.bg-secondary]="settings().subscriptionReminders"
+                  [class.bg-surface-container-high]="!settings().subscriptionReminders"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.subscriptionReminders"
-                    [class.translate-x-1]="!settings.subscriptionReminders"
+                    [class.translate-x-7]="settings().subscriptionReminders"
+                    [class.translate-x-1]="!settings().subscriptionReminders"
                   ></span>
                 </button>
               </div>
@@ -512,19 +521,29 @@ interface AppSettings {
 })
 export class SettingsComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly preferencesService = inject(PreferencesService);
+  private readonly languageService = inject(LanguageService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   readonly currentUser = this.authService.currentUser;
 
-  settings: AppSettings = {
+  // Settings state from API — signal so Angular detects changes after HTTP response
+  readonly settings = signal<AppSettings>({
     currency: 'USD',
-    dateFormat: 'MM/dd/yyyy',
+    dateFormat: 'MM/DD/YYYY',
     language: 'en',
     emailNotifications: true,
     pushNotifications: false,
     budgetAlerts: true,
     subscriptionReminders: true,
-  };
+  });
+
+  // Loading states
+  readonly isLoadingPreferences = signal(false);
+  readonly isSavingPreferences = signal(false);
+  readonly isLoadingUser = signal(false);
 
   showClearDataConfirm = false;
   showLogoutConfirm = false;
@@ -532,31 +551,95 @@ export class SettingsComponent implements OnInit {
 
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Edit user state
+  readonly isEditingProfile = signal(false);
+  editProfileData: UpdateProfileDto = {};
+
   ngOnInit(): void {
-    this.loadSettings();
+    this.loadPreferences();
   }
 
-  private loadSettings(): void {
-    const saved = localStorage.getItem('appSettings');
-    if (saved) {
-      try {
-        this.settings = { ...this.settings, ...JSON.parse(saved) };
-      } catch {
-        // Invalid settings, use defaults
-      }
-    }
+  private loadPreferences(): void {
+    this.isLoadingPreferences.set(true);
+    this.preferencesService.getPreferences().subscribe({
+      next: (prefs) => {
+        if (prefs) {
+          this.settings.set({
+            currency: prefs.currency,
+            dateFormat: prefs.dateFormat,
+            language: prefs.language,
+            emailNotifications: prefs.emailNotifications,
+            pushNotifications: prefs.pushNotifications,
+            budgetAlerts: prefs.budgetAlerts,
+            subscriptionReminders: prefs.subscriptionReminders,
+          });
+        }
+        this.isLoadingPreferences.set(false);
+      },
+      error: () => {
+        this.isLoadingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastLoadError'), 'error');
+      },
+    });
+  }
+
+  updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
+    this.settings.update((s) => ({ ...s, [key]: value }));
+    this.saveSettings();
   }
 
   saveSettings(): void {
-    localStorage.setItem('appSettings', JSON.stringify(this.settings));
-    this.showToast('Settings saved', 'success');
+    this.isSavingPreferences.set(true);
+    this.preferencesService.updatePreferences(this.settings()).subscribe({
+      next: (updatedPrefs) => {
+        this.isSavingPreferences.set(false);
+        this.languageService.setLanguage(this.settings().language);
+        this.preferencesService.setPreferences(updatedPrefs);
+        this.showToast(this.transloco.translate('settings.toastSaved'), 'success');
+      },
+      error: () => {
+        this.isSavingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastSaveError'), 'error');
+      },
+    });
   }
 
   toggleSetting(key: keyof AppSettings): void {
-    if (typeof this.settings[key] === 'boolean') {
-      (this.settings[key] as boolean) = !(this.settings[key] as boolean);
+    const current = this.settings();
+    if (typeof current[key] === 'boolean') {
+      this.settings.update((s) => ({ ...s, [key]: !s[key] }));
       this.saveSettings();
     }
+  }
+
+  startEditProfile(): void {
+    const user = this.currentUser();
+    if (user) {
+      this.editProfileData = { name: user.name, email: user.email };
+      this.isEditingProfile.set(true);
+    }
+  }
+
+  cancelEditProfile(): void {
+    this.isEditingProfile.set(false);
+    this.editProfileData = {};
+  }
+
+  saveProfile(): void {
+    this.isLoadingUser.set(true);
+    this.userService.updateMe(this.editProfileData).subscribe({
+      next: (updatedUser) => {
+        // Update auth service with new user data
+        this.authService.updateCurrentUser(updatedUser);
+        this.isLoadingUser.set(false);
+        this.isEditingProfile.set(false);
+        this.showToast(this.transloco.translate('settings.profileSuccess'), 'success');
+      },
+      error: () => {
+        this.isLoadingUser.set(false);
+        this.showToast(this.transloco.translate('settings.profileError'), 'error');
+      },
+    });
   }
 
   exportData(): void {
@@ -564,7 +647,7 @@ export class SettingsComponent implements OnInit {
       transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
       budgets: JSON.parse(localStorage.getItem('budgets') || '[]'),
       subscriptions: JSON.parse(localStorage.getItem('subscriptions') || '[]'),
-      settings: this.settings,
+      settings: this.settings(),
       exportDate: new Date().toISOString(),
     };
 
@@ -578,7 +661,7 @@ export class SettingsComponent implements OnInit {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    this.showToast('Data exported successfully', 'success');
+    this.showToast(this.transloco.translate('settings.exportSuccess'), 'success');
   }
 
   clearLocalData(): void {
@@ -595,7 +678,7 @@ export class SettingsComponent implements OnInit {
 
     keysToRemove.forEach((key) => localStorage.removeItem(key));
     this.showClearDataConfirm = false;
-    this.showToast('Local data cleared', 'success');
+    this.showToast(this.transloco.translate('settings.clearLocalDataSuccess'), 'success');
   }
 
   logout(): void {
