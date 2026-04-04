@@ -144,6 +144,21 @@
     "errorStartDate": "Start date is required",
     "errorServiceUrl": "Service URL is required for Digital Service"
   },
+  "sidebar": {
+    "editProfile": "Edit Profile",
+    "signOut": "Sign Out",
+    "editProfileTitle": "Edit Profile",
+    "nameLabel": "Name",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "passwordRequired": "Current password is required to set a new password",
+    "passwordMismatch": "New password and confirmation do not match",
+    "profileSuccess": "Profile updated successfully",
+    "profileError": "Failed to update profile",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your account and preferences",

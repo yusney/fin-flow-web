@@ -144,6 +144,21 @@
     "errorStartDate": "La fecha de inicio es obligatoria",
     "errorServiceUrl": "La URL del servicio es obligatoria para Servicio Digital"
   },
+  "sidebar": {
+    "editProfile": "Editar Perfil",
+    "signOut": "Cerrar Sesión",
+    "editProfileTitle": "Editar Perfil",
+    "nameLabel": "Nombre",
+    "currentPassword": "Contraseña Actual",
+    "newPassword": "Nueva Contraseña",
+    "confirmPassword": "Confirmar Contraseña",
+    "passwordRequired": "La contraseña actual es requerida para establecer una nueva",
+    "passwordMismatch": "La nueva contraseña y la confirmación no coinciden",
+    "profileSuccess": "Perfil actualizado correctamente",
+    "profileError": "Error al actualizar el perfil",
+    "cancel": "Cancelar",
+    "save": "Guardar"
+  },
   "settings": {
     "title": "Ajustes",
     "subtitle": "Administrá tu cuenta y preferencias",
