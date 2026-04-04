@@ -16,6 +16,7 @@ import { PreferencesService } from '../../core/services/preferences.service';
 import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
 import { UpdateProfileDto, User } from '../../shared/models/user.model';
+import { ToggleComponent } from '../../shared/components/toggle.component';
 import {
   Currency,
   DateFormat,
@@ -37,7 +38,7 @@ interface AppSettings {
   selector: 'app-settings',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
+  imports: [CommonModule, FormsModule, TranslocoDirective, ToggleComponent],
   template: `
     <ng-container *transloco="let t">
       <!-- Header -->
@@ -337,98 +338,42 @@ interface AppSettings {
 
             <div class="space-y-4">
               <!-- Email Notifications -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.emailNotifications') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.emailNotificationsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('emailNotifications')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings().emailNotifications"
-                  [class.bg-surface-container-high]="!settings().emailNotifications"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
-                    [class.translate-x-7]="settings().emailNotifications"
-                    [class.translate-x-1]="!settings().emailNotifications"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.emailNotifications')"
+                  [hint]="t('settings.emailNotificationsHint')"
+                  [checked]="settings().emailNotifications"
+                  (toggled)="updateSetting('emailNotifications', $event)"
+                />
               </div>
 
               <!-- Push Notifications -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.pushNotifications') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.pushNotificationsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('pushNotifications')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings().pushNotifications"
-                  [class.bg-surface-container-high]="!settings().pushNotifications"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
-                    [class.translate-x-7]="settings().pushNotifications"
-                    [class.translate-x-1]="!settings().pushNotifications"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.pushNotifications')"
+                  [hint]="t('settings.pushNotificationsHint')"
+                  [checked]="settings().pushNotifications"
+                  (toggled)="updateSetting('pushNotifications', $event)"
+                />
               </div>
 
               <!-- Budget Alerts -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">{{ t('settings.budgetAlerts') }}</div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.budgetAlertsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('budgetAlerts')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings().budgetAlerts"
-                  [class.bg-surface-container-high]="!settings().budgetAlerts"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
-                    [class.translate-x-7]="settings().budgetAlerts"
-                    [class.translate-x-1]="!settings().budgetAlerts"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.budgetAlerts')"
+                  [hint]="t('settings.budgetAlertsHint')"
+                  [checked]="settings().budgetAlerts"
+                  (toggled)="updateSetting('budgetAlerts', $event)"
+                />
               </div>
 
               <!-- Subscription Reminders -->
-              <div class="flex items-center justify-between py-3">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.subscriptionReminders') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.subscriptionRemindersHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('subscriptionReminders')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings().subscriptionReminders"
-                  [class.bg-surface-container-high]="!settings().subscriptionReminders"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-white shadow-md transition-transform duration-200"
-                    [class.translate-x-7]="settings().subscriptionReminders"
-                    [class.translate-x-1]="!settings().subscriptionReminders"
-                  ></span>
-                </button>
-              </div>
+              <app-toggle
+                [label]="t('settings.subscriptionReminders')"
+                [hint]="t('settings.subscriptionRemindersHint')"
+                [checked]="settings().subscriptionReminders"
+                (toggled)="updateSetting('subscriptionReminders', $event)"
+              />
             </div>
           </section>
 
@@ -785,14 +730,6 @@ export class SettingsComponent implements OnInit {
         this.showToast(this.transloco.translate('settings.toastSaveError'), 'error');
       },
     });
-  }
-
-  toggleSetting(key: keyof AppSettings): void {
-    const current = this.settings();
-    if (typeof current[key] === 'boolean') {
-      this.settings.update((s) => ({ ...s, [key]: !s[key] }));
-      this.saveSettings();
-    }
   }
 
   startEditProfile(): void {
