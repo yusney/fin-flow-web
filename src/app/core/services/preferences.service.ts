@@ -1,9 +1,12 @@
 import { Injectable, inject, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { Observable, throwError, of } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 
-import { UserPreferences, UpdatePreferencesRequest } from '../../shared/models/user-preferences.model';
+import {
+  UserPreferences,
+  UpdatePreferencesRequest,
+} from '../../shared/models/user-preferences.model';
 import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -14,7 +17,9 @@ export class PreferencesService {
   private readonly _preferences = signal<UserPreferences | null>(null);
   readonly preferences = this._preferences.asReadonly();
 
+  readonly isLoaded = signal(false);
   readonly currency = computed(() => this._preferences()?.currency ?? 'USD');
+  readonly language = computed(() => this._preferences()?.language ?? 'en');
 
   readonly angularDateFormat = computed(() => {
     const fmt = this._preferences()?.dateFormat;
@@ -30,17 +35,25 @@ export class PreferencesService {
     this._preferences.set(prefs);
   }
 
-  getPreferences(): Observable<UserPreferences> {
+  getPreferences(): Observable<UserPreferences | null> {
     return this.http.get<UserPreferences>(this.apiUrl).pipe(
+      tap((response) => {
+        this.setPreferences(response);
+        this.isLoaded.set(true);
+      }),
       catchError((error) => {
         console.error('Error fetching preferences:', error);
-        return throwError(() => error);
+        return of(null);
       }),
     );
   }
 
   updatePreferences(request: UpdatePreferencesRequest): Observable<UserPreferences> {
     return this.http.patch<UserPreferences>(this.apiUrl, request).pipe(
+      tap((updatedPrefs) => {
+        this.setPreferences(updatedPrefs);
+        this.isLoaded.set(true);
+      }),
       catchError((error) => {
         console.error('Error updating preferences:', error);
         return throwError(() => error);

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 import { PreferencesService } from '../../core/services/preferences.service';
+import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
 import { UpdateProfileDto, User } from '../../shared/models/user.model';
 import {
@@ -521,6 +522,7 @@ interface AppSettings {
 export class SettingsComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly preferencesService = inject(PreferencesService);
+  private readonly languageService = inject(LanguageService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly transloco = inject(TranslocoService);
@@ -561,15 +563,17 @@ export class SettingsComponent implements OnInit {
     this.isLoadingPreferences.set(true);
     this.preferencesService.getPreferences().subscribe({
       next: (prefs) => {
-        this.settings.set({
-          currency: prefs.currency,
-          dateFormat: prefs.dateFormat,
-          language: prefs.language,
-          emailNotifications: prefs.emailNotifications,
-          pushNotifications: prefs.pushNotifications,
-          budgetAlerts: prefs.budgetAlerts,
-          subscriptionReminders: prefs.subscriptionReminders,
-        });
+        if (prefs) {
+          this.settings.set({
+            currency: prefs.currency,
+            dateFormat: prefs.dateFormat,
+            language: prefs.language,
+            emailNotifications: prefs.emailNotifications,
+            pushNotifications: prefs.pushNotifications,
+            budgetAlerts: prefs.budgetAlerts,
+            subscriptionReminders: prefs.subscriptionReminders,
+          });
+        }
         this.isLoadingPreferences.set(false);
       },
       error: () => {
@@ -587,8 +591,10 @@ export class SettingsComponent implements OnInit {
   saveSettings(): void {
     this.isSavingPreferences.set(true);
     this.preferencesService.updatePreferences(this.settings()).subscribe({
-      next: () => {
+      next: (updatedPrefs) => {
         this.isSavingPreferences.set(false);
+        this.languageService.setLanguage(this.settings().language);
+        this.preferencesService.setPreferences(updatedPrefs);
         this.showToast(this.transloco.translate('settings.toastSaved'), 'success');
       },
       error: () => {
