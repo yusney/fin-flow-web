@@ -1,7 +1,6 @@
-import { Component, inject, signal } from '@angular/core';
-import { Router, RouterOutlet } from '@angular/router';
+import { Component, signal } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
-import { AuthService } from '../../../core/services/auth.service';
 import { SidebarComponent } from '../components/sidebar.component';
 
 @Component({
@@ -21,20 +20,14 @@ import { SidebarComponent } from '../components/sidebar.component';
         <header
           class="lg:hidden fixed top-0 left-0 right-0 h-14 bg-surface-container-low z-30 flex items-center justify-between px-4 border-b border-outline-variant"
         >
-          <div class="flex items-center gap-x-1">
+          <div class="flex items-center gap-x-3">
             <button
               class="p-2 -ml-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-high"
               (click)="openSidebar()"
             >
               <span class="material-symbols-outlined text-[24px]">menu</span>
             </button>
-            <button
-              class="p-2 text-on-surface-variant hover:text-error hover:bg-error/10 rounded-full transition-colors"
-              (click)="logout()"
-            >
-              <span class="material-symbols-outlined text-[22px]">logout</span>
-            </button>
-            <span class="text-lg font-bold font-headline text-on-surface ml-1">fin-flow</span>
+            <span class="text-lg font-bold font-headline text-on-surface">fin-flow</span>
           </div>
           <button
             class="p-2 text-on-surface-variant hover:text-on-surface rounded-full hover:bg-surface-container-high"
@@ -46,13 +39,11 @@ import { SidebarComponent } from '../components/sidebar.component';
         <!-- Page content via router -->
         <router-outlet />
       </main>
+
     </div>
   `,
 })
 export class AppLayoutShellComponent {
-  private readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
-
   readonly isSidebarOpen = signal(false);
 
   openSidebar(): void {
@@ -61,10 +52,5 @@ export class AppLayoutShellComponent {
 
   closeSidebar(): void {
     this.isSidebarOpen.set(false);
-  }
-
-  logout(): void {
-    this.auth.logout();
-    this.router.navigate(['/login']);
   }
 }
