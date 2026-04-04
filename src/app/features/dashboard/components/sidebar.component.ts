@@ -82,7 +82,9 @@ interface NavItem {
 
         <!-- User Profile -->
         <div class="pt-2">
-          <div class="text-xs uppercase tracking-widest text-outline mb-2">{{ t('common.account') }}</div>
+          <div class="text-xs uppercase tracking-widest text-outline mb-2">
+            {{ t('common.account') }}
+          </div>
           <div class="flex items-center gap-x-3">
             <div
               class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center text-on-surface-variant"
@@ -93,7 +95,7 @@ interface NavItem {
               <div class="text-sm font-semibold text-on-surface">
                 {{ currentUser()?.name ?? 'Alex Sterling' }}
               </div>
-              <div class="text-xs text-on-surface-variant">Premium Ledger</div>
+              <div class="text-xs text-on-surface-variant">{{ t('sidebar.accountType') }}</div>
             </div>
           </div>
         </div>

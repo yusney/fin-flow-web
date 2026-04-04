@@ -16,7 +16,19 @@
     "search": "Buscar",
     "clearFilters": "Limpiar filtros",
     "loading": "Cargando...",
-    "noResults": "Sin resultados"
+    "noResults": "Sin resultados",
+    "close": "Cerrar",
+    "confirm": "Confirmar"
+  },
+  "login": {
+    "tagline": "The Digital Ledger",
+    "welcomeBack": "Bienvenido de nuevo",
+    "signInSubtitle": "Iniciá sesión en tu cuenta",
+    "email": "Email",
+    "password": "Contraseña",
+    "signIn": "Iniciar Sesión",
+    "signingIn": "Iniciando sesión…",
+    "demoHint": "Demo:"
   },
   "dashboard": {
     "title": "Inicio",
@@ -144,6 +156,26 @@
     "errorStartDate": "La fecha de inicio es obligatoria",
     "errorServiceUrl": "La URL del servicio es obligatoria para Servicio Digital"
   },
+  "budgets": {
+    "title": "Presupuestos",
+    "subtitle": "Administrá tus límites de gasto mensuales",
+    "monthlyBudgets": "Presupuestos Mensuales",
+    "totalBudget": "Presupuesto Total",
+    "spent": "Gastado",
+    "remaining": "Restante",
+    "overBudget": "Sobre presupuesto",
+    "addBudget": "Agregar Presupuesto",
+    "editBudget": "Editar Presupuesto",
+    "deleteBudget": "Eliminar Presupuesto",
+    "category": "Categoría",
+    "amount": "Monto",
+    "period": "Período",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "saveBudget": "Guardar Presupuesto",
+    "noBudgets": "Sin presupuestos",
+    "createFirstBudget": "Creá tu primer presupuesto para empezar a controlar"
+  },
   "sidebar": {
     "editProfile": "Editar Perfil",
     "signOut": "Cerrar Sesión",
@@ -157,7 +189,8 @@
     "profileSuccess": "Perfil actualizado correctamente",
     "profileError": "Error al actualizar el perfil",
     "cancel": "Cancelar",
-    "save": "Guardar"
+    "save": "Guardar",
+    "accountType": "Premium Ledger"
   },
   "settings": {
     "title": "Ajustes",
@@ -169,27 +202,35 @@
     "currency": "Moneda",
     "currencyHint": "Seleccioná tu moneda preferida",
     "dateFormat": "Formato de Fecha",
-    "dateFormatHint": "Elegí cómo se muestran las fechas",
+    "dateFormatHint": "Cómo se muestran las fechas",
     "language": "Idioma",
-    "languageHint": "Seleccioná tu idioma preferido",
+    "languageHint": "Idioma de la interfaz",
     "notifications": "Notificaciones",
     "emailNotifications": "Notificaciones por Email",
     "emailNotificationsHint": "Recibir actualizaciones por email",
     "pushNotifications": "Notificaciones Push",
-    "pushNotificationsHint": "Recibir notificaciones push",
+    "pushNotificationsHint": "Notificaciones push del navegador",
     "budgetAlerts": "Alertas de Presupuesto",
     "budgetAlertsHint": "Notificarme al acercarme a los límites de presupuesto",
     "subscriptionReminders": "Recordatorios de Suscripciones",
     "subscriptionRemindersHint": "Recordarme antes de las renovaciones de suscripciones",
     "dataManagement": "Gestión de Datos",
     "exportData": "Exportar Datos",
-    "exportDataHint": "Descargar todos tus datos como JSON",
+    "exportDataHint": "Descargar tus datos como JSON",
     "clearLocalData": "Limpiar Datos Locales",
     "clearLocalDataHint": "Eliminar todos los datos almacenados localmente",
+    "clearLocalDataTitle": "¿Limpiar datos locales?",
+    "clearLocalDataConfirm": "¿Estás seguro? Esto eliminará todos tus datos locales.",
     "account": "Cuenta",
     "signOut": "Cerrar Sesión",
     "deleteAccount": "Eliminar Cuenta",
+    "signOutTitle": "¿Cerrar sesión?",
+    "signOutConfirm": "¿Estás seguro de que querés cerrar sesión?",
+    "deleteAccountTitle": "¿Eliminar cuenta?",
+    "deleteAccountConfirm": "Esta acción no se puede deshacer.",
     "appVersion": "Versión de la App",
-    "builtWith": "Hecho con"
+    "builtWith": "Hecho con",
+    "featureNotImplemented": "Esta función aún no está implementada.",
+    "version": "FinFlow v{{ version }}"
   }
 }

@@ -2,6 +2,7 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
 
 interface AppSettings {
@@ -17,13 +18,16 @@ interface AppSettings {
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslocoDirective],
   template: `
-    <!-- Header -->
-    <header class="bg-surface-container-low border-b border-outline-variant">
+    <ng-container *transloco="let t">
+      <!-- Header -->
+      <header class="bg-surface-container-low border-b border-outline-variant">
         <div class="p-4 lg:p-8">
-          <h1 class="text-2xl lg:text-3xl font-bold font-headline text-on-surface">Settings</h1>
-          <p class="text-sm text-on-surface-variant mt-1">Manage your account and preferences</p>
+          <h1 class="text-2xl lg:text-3xl font-bold font-headline text-on-surface">
+            {{ t('settings.title') }}
+          </h1>
+          <p class="text-sm text-on-surface-variant mt-1">{{ t('settings.subtitle') }}</p>
         </div>
       </header>
 
@@ -38,7 +42,7 @@ interface AppSettings {
               <div
                 class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center"
               >
-                <span class="material-symbols-outlined text-[32px] text-primary"> person </span>
+                <span class="material-symbols-outlined text-[32px] text-primary">person</span>
               </div>
               <div>
                 <h2 class="text-xl font-bold font-headline text-on-surface">
@@ -51,7 +55,7 @@ interface AppSettings {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div class="p-4 bg-surface-container-low rounded-[var(--radius-input)]">
                 <div class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">
-                  User ID
+                  {{ t('settings.userId') }}
                 </div>
                 <div class="text-sm font-medium text-on-surface truncate">
                   {{ currentUser()?.id }}
@@ -59,11 +63,13 @@ interface AppSettings {
               </div>
               <div class="p-4 bg-surface-container-low rounded-[var(--radius-input)]">
                 <div class="text-xs text-on-surface-variant uppercase tracking-wider mb-1">
-                  Account Status
+                  {{ t('settings.accountStatus') }}
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="w-2 h-2 rounded-full bg-secondary"></span>
-                  <span class="text-sm font-medium text-on-surface">Active</span>
+                  <span class="text-sm font-medium text-on-surface">{{
+                    t('settings.active')
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -75,7 +81,9 @@ interface AppSettings {
           >
             <div class="flex items-center gap-3 mb-6">
               <span class="material-symbols-outlined text-primary text-[24px]">tune</span>
-              <h2 class="text-lg font-bold font-headline text-on-surface">Preferences</h2>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.preferences') }}
+              </h2>
             </div>
 
             <div class="space-y-4">
@@ -84,9 +92,9 @@ interface AppSettings {
                 class="flex items-center justify-between py-3 border-b border-outline-variant last:border-0"
               >
                 <div>
-                  <div class="font-medium text-on-surface">Currency</div>
+                  <div class="font-medium text-on-surface">{{ t('settings.currency') }}</div>
                   <div class="text-sm text-on-surface-variant">
-                    Display amounts in this currency
+                    {{ t('settings.currencyHint') }}
                   </div>
                 </div>
                 <select
@@ -107,8 +115,10 @@ interface AppSettings {
                 class="flex items-center justify-between py-3 border-b border-outline-variant last:border-0"
               >
                 <div>
-                  <div class="font-medium text-on-surface">Date Format</div>
-                  <div class="text-sm text-on-surface-variant">How dates are displayed</div>
+                  <div class="font-medium text-on-surface">{{ t('settings.dateFormat') }}</div>
+                  <div class="text-sm text-on-surface-variant">
+                    {{ t('settings.dateFormatHint') }}
+                  </div>
                 </div>
                 <select
                   [(ngModel)]="settings.dateFormat"
@@ -124,8 +134,10 @@ interface AppSettings {
               <!-- Language -->
               <div class="flex items-center justify-between py-3">
                 <div>
-                  <div class="font-medium text-on-surface">Language</div>
-                  <div class="text-sm text-on-surface-variant">Interface language</div>
+                  <div class="font-medium text-on-surface">{{ t('settings.language') }}</div>
+                  <div class="text-sm text-on-surface-variant">
+                    {{ t('settings.languageHint') }}
+                  </div>
                 </div>
                 <select
                   [(ngModel)]="settings.language"
@@ -145,15 +157,21 @@ interface AppSettings {
           >
             <div class="flex items-center gap-3 mb-6">
               <span class="material-symbols-outlined text-primary text-[24px]">notifications</span>
-              <h2 class="text-lg font-bold font-headline text-on-surface">Notifications</h2>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.notifications') }}
+              </h2>
             </div>
 
             <div class="space-y-4">
               <!-- Email Notifications -->
               <div class="flex items-center justify-between py-3 border-b border-outline-variant">
                 <div>
-                  <div class="font-medium text-on-surface">Email Notifications</div>
-                  <div class="text-sm text-on-surface-variant">Receive updates via email</div>
+                  <div class="font-medium text-on-surface">
+                    {{ t('settings.emailNotifications') }}
+                  </div>
+                  <div class="text-sm text-on-surface-variant">
+                    {{ t('settings.emailNotificationsHint') }}
+                  </div>
                 </div>
                 <button
                   (click)="toggleSetting('emailNotifications')"
@@ -172,8 +190,12 @@ interface AppSettings {
               <!-- Push Notifications -->
               <div class="flex items-center justify-between py-3 border-b border-outline-variant">
                 <div>
-                  <div class="font-medium text-on-surface">Push Notifications</div>
-                  <div class="text-sm text-on-surface-variant">Browser push notifications</div>
+                  <div class="font-medium text-on-surface">
+                    {{ t('settings.pushNotifications') }}
+                  </div>
+                  <div class="text-sm text-on-surface-variant">
+                    {{ t('settings.pushNotificationsHint') }}
+                  </div>
                 </div>
                 <button
                   (click)="toggleSetting('pushNotifications')"
@@ -192,9 +214,9 @@ interface AppSettings {
               <!-- Budget Alerts -->
               <div class="flex items-center justify-between py-3 border-b border-outline-variant">
                 <div>
-                  <div class="font-medium text-on-surface">Budget Alerts</div>
+                  <div class="font-medium text-on-surface">{{ t('settings.budgetAlerts') }}</div>
                   <div class="text-sm text-on-surface-variant">
-                    Warn when approaching budget limits
+                    {{ t('settings.budgetAlertsHint') }}
                   </div>
                 </div>
                 <button
@@ -214,9 +236,11 @@ interface AppSettings {
               <!-- Subscription Reminders -->
               <div class="flex items-center justify-between py-3">
                 <div>
-                  <div class="font-medium text-on-surface">Subscription Reminders</div>
+                  <div class="font-medium text-on-surface">
+                    {{ t('settings.subscriptionReminders') }}
+                  </div>
                   <div class="text-sm text-on-surface-variant">
-                    Alert before subscription renewals
+                    {{ t('settings.subscriptionRemindersHint') }}
                   </div>
                 </div>
                 <button
@@ -241,7 +265,9 @@ interface AppSettings {
           >
             <div class="flex items-center gap-3 mb-6">
               <span class="material-symbols-outlined text-primary text-[24px]">database</span>
-              <h2 class="text-lg font-bold font-headline text-on-surface">Data Management</h2>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.dataManagement') }}
+              </h2>
             </div>
 
             <div class="space-y-3">
@@ -252,8 +278,10 @@ interface AppSettings {
                 <div class="flex items-center gap-3">
                   <span class="material-symbols-outlined text-on-surface-variant">download</span>
                   <div class="text-left">
-                    <div class="font-medium text-on-surface">Export Data</div>
-                    <div class="text-sm text-on-surface-variant">Download your data as JSON</div>
+                    <div class="font-medium text-on-surface">{{ t('settings.exportData') }}</div>
+                    <div class="text-sm text-on-surface-variant">
+                      {{ t('settings.exportDataHint') }}
+                    </div>
                   </div>
                 </div>
                 <span class="material-symbols-outlined text-on-surface-variant">chevron_right</span>
@@ -268,9 +296,11 @@ interface AppSettings {
                     >delete_sweep</span
                   >
                   <div class="text-left">
-                    <div class="font-medium text-on-surface">Clear Local Data</div>
+                    <div class="font-medium text-on-surface">
+                      {{ t('settings.clearLocalData') }}
+                    </div>
                     <div class="text-sm text-on-surface-variant">
-                      Remove cached data from this device
+                      {{ t('settings.clearLocalDataHint') }}
                     </div>
                   </div>
                 </div>
@@ -287,7 +317,9 @@ interface AppSettings {
               <span class="material-symbols-outlined text-primary text-[24px]"
                 >manage_accounts</span
               >
-              <h2 class="text-lg font-bold font-headline text-on-surface">Account</h2>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.account') }}
+              </h2>
             </div>
 
             <div class="space-y-3">
@@ -296,7 +328,7 @@ interface AppSettings {
                 class="w-full flex items-center justify-center gap-2 p-4 bg-surface-container-low text-on-surface rounded-[var(--radius-button)] hover:bg-surface-container-high transition-colors font-medium"
               >
                 <span class="material-symbols-outlined">logout</span>
-                Sign Out
+                {{ t('settings.signOut') }}
               </button>
 
               <button
@@ -304,153 +336,161 @@ interface AppSettings {
                 class="w-full flex items-center justify-center gap-2 p-4 bg-tertiary-container text-on-tertiary-container rounded-[var(--radius-button)] hover:bg-tertiary-container/80 transition-colors font-medium"
               >
                 <span class="material-symbols-outlined">delete_forever</span>
-                Delete Account
+                {{ t('settings.deleteAccount') }}
               </button>
             </div>
           </section>
 
           <!-- App Info -->
           <section class="text-center py-6">
-            <p class="text-sm text-on-surface-variant">FinFlow v1.0.0</p>
-            <p class="text-xs text-on-surface-variant mt-1">Built with Angular 21</p>
+            <p class="text-sm text-on-surface-variant">
+              {{ t('settings.version', { version: '1.0.0' }) }}
+            </p>
+            <p class="text-xs text-on-surface-variant mt-1">
+              {{ t('settings.builtWith') }} Angular 21
+            </p>
           </section>
         </div>
       </div>
 
-    <!-- Clear Data Confirmation Modal -->
-    @if (showClearDataConfirm) {
-      <div
-        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        (click)="showClearDataConfirm = false"
-      >
+      <!-- Clear Data Confirmation Modal -->
+      @if (showClearDataConfirm) {
         <div
-          class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
-          (click)="$event.stopPropagation()"
+          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          (click)="showClearDataConfirm = false"
         >
-          <div class="text-center">
-            <div
-              class="w-12 h-12 bg-primary-container/20 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <span class="material-symbols-outlined text-primary text-[24px]">delete_sweep</span>
-            </div>
-            <h3 class="text-lg font-bold font-headline text-on-surface mb-2">Clear Local Data?</h3>
-            <p class="text-sm text-on-surface-variant mb-6">
-              This will remove all cached data from your browser. Your server data will not be
-              affected.
-            </p>
-            <div class="flex gap-3">
-              <button
-                (click)="showClearDataConfirm = false"
-                class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
+          <div
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-primary-container/20 rounded-full flex items-center justify-center mx-auto mb-4"
               >
-                Cancel
-              </button>
-              <button
-                (click)="clearLocalData()"
-                class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all"
-              >
-                Clear
-              </button>
+                <span class="material-symbols-outlined text-primary text-[24px]">delete_sweep</span>
+              </div>
+              <h3 class="text-lg font-bold font-headline text-on-surface mb-2">
+                {{ t('settings.clearLocalDataTitle') }}
+              </h3>
+              <p class="text-sm text-on-surface-variant mb-6">
+                {{ t('settings.clearLocalDataConfirm') }}
+              </p>
+              <div class="flex gap-3">
+                <button
+                  (click)="showClearDataConfirm = false"
+                  class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
+                >
+                  {{ t('common.cancel') }}
+                </button>
+                <button
+                  (click)="clearLocalData()"
+                  class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all"
+                >
+                  {{ t('common.confirm') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    }
+      }
 
-    <!-- Logout Confirmation Modal -->
-    @if (showLogoutConfirm) {
-      <div
-        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        (click)="showLogoutConfirm = false"
-      >
+      <!-- Logout Confirmation Modal -->
+      @if (showLogoutConfirm) {
         <div
-          class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
-          (click)="$event.stopPropagation()"
+          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          (click)="showLogoutConfirm = false"
         >
-          <div class="text-center">
-            <div
-              class="w-12 h-12 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <span class="material-symbols-outlined text-on-surface-variant text-[24px]"
-                >logout</span
+          <div
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-surface-container-high rounded-full flex items-center justify-center mx-auto mb-4"
               >
-            </div>
-            <h3 class="text-lg font-bold font-headline text-on-surface mb-2">Sign Out?</h3>
-            <p class="text-sm text-on-surface-variant mb-6">
-              You will be logged out and redirected to the login page.
-            </p>
-            <div class="flex gap-3">
-              <button
-                (click)="showLogoutConfirm = false"
-                class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                (click)="logout()"
-                class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all"
-              >
-                Sign Out
-              </button>
+                <span class="material-symbols-outlined text-on-surface-variant text-[24px]">
+                  logout
+                </span>
+              </div>
+              <h3 class="text-lg font-bold font-headline text-on-surface mb-2">
+                {{ t('settings.signOutTitle') }}
+              </h3>
+              <p class="text-sm text-on-surface-variant mb-6">{{ t('settings.signOutConfirm') }}</p>
+              <div class="flex gap-3">
+                <button
+                  (click)="showLogoutConfirm = false"
+                  class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
+                >
+                  {{ t('common.cancel') }}
+                </button>
+                <button
+                  (click)="logout()"
+                  class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all"
+                >
+                  {{ t('settings.signOut') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    }
+      }
 
-    <!-- Delete Account Confirmation Modal -->
-    @if (showDeleteAccountConfirm) {
-      <div
-        class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
-        (click)="showDeleteAccountConfirm = false"
-      >
+      <!-- Delete Account Confirmation Modal -->
+      @if (showDeleteAccountConfirm) {
         <div
-          class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
-          (click)="$event.stopPropagation()"
+          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          (click)="showDeleteAccountConfirm = false"
         >
-          <div class="text-center">
-            <div
-              class="w-12 h-12 bg-tertiary-container/20 rounded-full flex items-center justify-center mx-auto mb-4"
-            >
-              <span class="material-symbols-outlined text-tertiary text-[24px]"
-                >delete_forever</span
+          <div
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-sm p-6 shadow-[var(--shadow-elevated)]"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="text-center">
+              <div
+                class="w-12 h-12 bg-tertiary-container/20 rounded-full flex items-center justify-center mx-auto mb-4"
               >
-            </div>
-            <h3 class="text-lg font-bold font-headline text-on-surface mb-2">Delete Account?</h3>
-            <p class="text-sm text-on-surface-variant mb-2">
-              This action cannot be undone. All your data will be permanently deleted.
-            </p>
-            <p class="text-xs text-tertiary mb-6">This feature is not yet implemented.</p>
-            <div class="flex gap-3">
-              <button
-                (click)="showDeleteAccountConfirm = false"
-                class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
-              >
-                Cancel
-              </button>
-              <button
-                disabled
-                class="flex-1 px-4 py-3 bg-tertiary/50 text-on-tertiary/50 font-semibold rounded-[var(--radius-button)] cursor-not-allowed"
-              >
-                Delete
-              </button>
+                <span class="material-symbols-outlined text-tertiary text-[24px]"
+                  >delete_forever</span
+                >
+              </div>
+              <h3 class="text-lg font-bold font-headline text-on-surface mb-2">
+                {{ t('settings.deleteAccountTitle') }}
+              </h3>
+              <p class="text-sm text-on-surface-variant mb-2">
+                {{ t('settings.deleteAccountConfirm') }}
+              </p>
+              <p class="text-xs text-tertiary mb-6">{{ t('settings.featureNotImplemented') }}</p>
+              <div class="flex gap-3">
+                <button
+                  (click)="showDeleteAccountConfirm = false"
+                  class="flex-1 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
+                >
+                  {{ t('common.cancel') }}
+                </button>
+                <button
+                  disabled
+                  class="flex-1 px-4 py-3 bg-tertiary/50 text-on-tertiary/50 font-semibold rounded-[var(--radius-button)] cursor-not-allowed"
+                >
+                  {{ t('common.delete') }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    }
+      }
 
-    <!-- Toast Notification -->
-    @if (toast()) {
-      <div
-        class="fixed bottom-4 left-1/2 -translate-x-1/2 lg:bottom-8 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-[var(--shadow-elevated)] animate-fade-in bg-inverse-surface"
-      >
-        <span class="material-symbols-outlined text-on-inverse-surface">
-          {{ toast()?.type === 'success' ? 'check_circle' : 'error' }}
-        </span>
-        <span class="text-sm font-medium text-on-inverse-surface">{{ toast()?.message }}</span>
-      </div>
-    }
+      <!-- Toast Notification -->
+      @if (toast()) {
+        <div
+          class="fixed bottom-4 left-1/2 -translate-x-1/2 lg:bottom-8 z-50 flex items-center gap-2 px-4 py-3 rounded-full shadow-[var(--shadow-elevated)] animate-fade-in bg-inverse-surface"
+        >
+          <span class="material-symbols-outlined text-on-inverse-surface">
+            {{ toast()?.type === 'success' ? 'check_circle' : 'error' }}
+          </span>
+          <span class="text-sm font-medium text-on-inverse-surface">{{ toast()?.message }}</span>
+        </div>
+      }
+    </ng-container>
   `,
   styles: [
     `

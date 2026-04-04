@@ -16,7 +16,19 @@
     "search": "Search",
     "clearFilters": "Clear filters",
     "loading": "Loading...",
-    "noResults": "No results found"
+    "noResults": "No results found",
+    "close": "Close",
+    "confirm": "Confirm"
+  },
+  "login": {
+    "tagline": "The Digital Ledger",
+    "welcomeBack": "Welcome back",
+    "signInSubtitle": "Sign in to your account",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signingIn": "Signing in…",
+    "demoHint": "Demo:"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -144,6 +156,26 @@
     "errorStartDate": "Start date is required",
     "errorServiceUrl": "Service URL is required for Digital Service"
   },
+  "budgets": {
+    "title": "Budgets",
+    "subtitle": "Manage your monthly spending limits",
+    "monthlyBudgets": "Monthly Budgets",
+    "totalBudget": "Total Budget",
+    "spent": "Spent",
+    "remaining": "Remaining",
+    "overBudget": "Over budget",
+    "addBudget": "Add Budget",
+    "editBudget": "Edit Budget",
+    "deleteBudget": "Delete Budget",
+    "category": "Category",
+    "amount": "Amount",
+    "period": "Period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "saveBudget": "Save Budget",
+    "noBudgets": "No budgets set",
+    "createFirstBudget": "Create your first budget to start tracking"
+  },
   "sidebar": {
     "editProfile": "Edit Profile",
     "signOut": "Sign Out",
@@ -157,7 +189,8 @@
     "profileSuccess": "Profile updated successfully",
     "profileError": "Failed to update profile",
     "cancel": "Cancel",
-    "save": "Save"
+    "save": "Save",
+    "accountType": "Premium Ledger"
   },
   "settings": {
     "title": "Settings",
@@ -169,27 +202,35 @@
     "currency": "Currency",
     "currencyHint": "Select your preferred currency",
     "dateFormat": "Date Format",
-    "dateFormatHint": "Choose how dates are displayed",
+    "dateFormatHint": "How dates are displayed",
     "language": "Language",
-    "languageHint": "Select your preferred language",
+    "languageHint": "Interface language",
     "notifications": "Notifications",
     "emailNotifications": "Email Notifications",
     "emailNotificationsHint": "Receive updates via email",
     "pushNotifications": "Push Notifications",
-    "pushNotificationsHint": "Receive push notifications",
+    "pushNotificationsHint": "Browser push notifications",
     "budgetAlerts": "Budget Alerts",
     "budgetAlertsHint": "Get notified when approaching budget limits",
     "subscriptionReminders": "Subscription Reminders",
     "subscriptionRemindersHint": "Remind me before subscription renewals",
     "dataManagement": "Data Management",
     "exportData": "Export Data",
-    "exportDataHint": "Download all your data as JSON",
+    "exportDataHint": "Download your data as JSON",
     "clearLocalData": "Clear Local Data",
     "clearLocalDataHint": "Remove all locally stored data",
+    "clearLocalDataTitle": "Clear Local Data?",
+    "clearLocalDataConfirm": "Are you sure? This will remove all your local data.",
     "account": "Account",
     "signOut": "Sign Out",
     "deleteAccount": "Delete Account",
+    "signOutTitle": "Sign Out?",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "deleteAccountTitle": "Delete Account?",
+    "deleteAccountConfirm": "This action cannot be undone.",
     "appVersion": "App Version",
-    "builtWith": "Built with"
+    "builtWith": "Built with",
+    "featureNotImplemented": "This feature is not yet implemented.",
+    "version": "FinFlow v{{ version }}"
   }
 }
