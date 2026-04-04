@@ -107,8 +107,8 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.currency"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().currency"
+                  (ngModelChange)="updateSetting('currency', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[120px]"
                 >
                   <option value="USD">USD ($)</option>
@@ -129,8 +129,8 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.dateFormat"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().dateFormat"
+                  (ngModelChange)="updateSetting('dateFormat', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
                   <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -148,8 +148,8 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.language"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().language"
+                  (ngModelChange)="updateSetting('language', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
                   <option value="en">English</option>
@@ -184,13 +184,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('emailNotifications')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.emailNotifications"
-                  [class.bg-surface-container-high]="!settings.emailNotifications"
+                  [class.bg-secondary]="settings().emailNotifications"
+                  [class.bg-surface-container-high]="!settings().emailNotifications"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.emailNotifications"
-                    [class.translate-x-1]="!settings.emailNotifications"
+                    [class.translate-x-7]="settings().emailNotifications"
+                    [class.translate-x-1]="!settings().emailNotifications"
                   ></span>
                 </button>
               </div>
@@ -208,13 +208,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('pushNotifications')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.pushNotifications"
-                  [class.bg-surface-container-high]="!settings.pushNotifications"
+                  [class.bg-secondary]="settings().pushNotifications"
+                  [class.bg-surface-container-high]="!settings().pushNotifications"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.pushNotifications"
-                    [class.translate-x-1]="!settings.pushNotifications"
+                    [class.translate-x-7]="settings().pushNotifications"
+                    [class.translate-x-1]="!settings().pushNotifications"
                   ></span>
                 </button>
               </div>
@@ -230,13 +230,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('budgetAlerts')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.budgetAlerts"
-                  [class.bg-surface-container-high]="!settings.budgetAlerts"
+                  [class.bg-secondary]="settings().budgetAlerts"
+                  [class.bg-surface-container-high]="!settings().budgetAlerts"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.budgetAlerts"
-                    [class.translate-x-1]="!settings.budgetAlerts"
+                    [class.translate-x-7]="settings().budgetAlerts"
+                    [class.translate-x-1]="!settings().budgetAlerts"
                   ></span>
                 </button>
               </div>
@@ -254,13 +254,13 @@ interface AppSettings {
                 <button
                   (click)="toggleSetting('subscriptionReminders')"
                   class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.subscriptionReminders"
-                  [class.bg-surface-container-high]="!settings.subscriptionReminders"
+                  [class.bg-secondary]="settings().subscriptionReminders"
+                  [class.bg-surface-container-high]="!settings().subscriptionReminders"
                 >
                   <span
                     class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.subscriptionReminders"
-                    [class.translate-x-1]="!settings.subscriptionReminders"
+                    [class.translate-x-7]="settings().subscriptionReminders"
+                    [class.translate-x-1]="!settings().subscriptionReminders"
                   ></span>
                 </button>
               </div>
@@ -527,8 +527,8 @@ export class SettingsComponent implements OnInit {
 
   readonly currentUser = this.authService.currentUser;
 
-  // Settings state from API
-  settings: AppSettings = {
+  // Settings state from API — signal so Angular detects changes after HTTP response
+  readonly settings = signal<AppSettings>({
     currency: 'USD',
     dateFormat: 'MM/DD/YYYY',
     language: 'en',
@@ -536,7 +536,7 @@ export class SettingsComponent implements OnInit {
     pushNotifications: false,
     budgetAlerts: true,
     subscriptionReminders: true,
-  };
+  });
 
   // Loading states
   readonly isLoadingPreferences = signal(false);
@@ -561,7 +561,7 @@ export class SettingsComponent implements OnInit {
     this.isLoadingPreferences.set(true);
     this.preferencesService.getPreferences().subscribe({
       next: (prefs) => {
-        this.settings = {
+        this.settings.set({
           currency: prefs.currency,
           dateFormat: prefs.dateFormat,
           language: prefs.language,
@@ -569,7 +569,7 @@ export class SettingsComponent implements OnInit {
           pushNotifications: prefs.pushNotifications,
           budgetAlerts: prefs.budgetAlerts,
           subscriptionReminders: prefs.subscriptionReminders,
-        };
+        });
         this.isLoadingPreferences.set(false);
       },
       error: () => {
@@ -579,9 +579,14 @@ export class SettingsComponent implements OnInit {
     });
   }
 
+  updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
+    this.settings.update((s) => ({ ...s, [key]: value }));
+    this.saveSettings();
+  }
+
   saveSettings(): void {
     this.isSavingPreferences.set(true);
-    this.preferencesService.updatePreferences(this.settings).subscribe({
+    this.preferencesService.updatePreferences(this.settings()).subscribe({
       next: () => {
         this.isSavingPreferences.set(false);
         this.showToast(this.transloco.translate('settings.toastSaved'), 'success');
@@ -594,8 +599,9 @@ export class SettingsComponent implements OnInit {
   }
 
   toggleSetting(key: keyof AppSettings): void {
-    if (typeof this.settings[key] === 'boolean') {
-      (this.settings[key] as boolean) = !(this.settings[key] as boolean);
+    const current = this.settings();
+    if (typeof current[key] === 'boolean') {
+      this.settings.update((s) => ({ ...s, [key]: !s[key] }));
       this.saveSettings();
     }
   }
@@ -635,7 +641,7 @@ export class SettingsComponent implements OnInit {
       transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
       budgets: JSON.parse(localStorage.getItem('budgets') || '[]'),
       subscriptions: JSON.parse(localStorage.getItem('subscriptions') || '[]'),
-      settings: this.settings,
+      settings: this.settings(),
       exportDate: new Date().toISOString(),
     };
 
