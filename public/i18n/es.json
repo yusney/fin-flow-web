@@ -158,6 +158,7 @@
     "templates": {
       "title": "Plantillas de Suscripción",
       "all": "Todas",
+      "back": "Volver",
       "startFromScratch": "Empezar desde Cero",
       "categories": {
         "STREAMING": "Streaming",

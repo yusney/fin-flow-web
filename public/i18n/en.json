@@ -158,6 +158,7 @@
     "templates": {
       "title": "Subscription Templates",
       "all": "All",
+      "back": "Back",
       "startFromScratch": "Start from Scratch",
       "categories": {
         "STREAMING": "Streaming",
