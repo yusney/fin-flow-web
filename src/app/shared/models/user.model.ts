@@ -3,3 +3,9 @@ export interface User {
   email: string;
   name: string;
 }
+
+// DTO for updating user profile
+export interface UpdateProfileDto {
+  name?: string;
+  email?: string;
+}

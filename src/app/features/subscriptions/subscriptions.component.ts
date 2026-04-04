@@ -10,10 +10,14 @@ import {
   UpdateSubscriptionRequest,
 } from '../../core/services/subscription.service';
 import { CategoryService } from '../../core/services/category.service';
+import { SubscriptionTemplateService } from '../../core/services/subscription-template.service';
 import {
   Subscription,
   SubscriptionFrequency,
   SubscriptionType,
+  SubscriptionTemplate,
+  TemplateCategory,
+  SubscriptionTemplatePrefill,
   getMonthlyCost,
   getYearlyCost,
   getDaysUntilBilling,
@@ -97,7 +101,7 @@ import { Category } from '../../shared/models/transaction.model';
               }
               @if (upcomingPayments().length > 3) {
                 <span class="text-sm text-on-surface-variant px-2 py-1">
-                  +{{ upcomingPayments().length - 3 }} more
+                  +{{ upcomingPayments().length - 3 }} {{ t('subscriptions.more') }}
                 </span>
               }
             </div>
@@ -358,6 +362,143 @@ import { Category } from '../../shared/models/transaction.model';
         <span class="material-symbols-outlined text-[24px]">add</span>
       </button>
 
+      <!-- Template Picker Modal -->
+      @if (isTemplatePickerOpen()) {
+        <div
+          class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          (click)="closeTemplatePicker()"
+        >
+          <div
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] w-full max-w-lg lg:max-w-2xl max-h-[90vh] overflow-y-auto shadow-[var(--shadow-elevated)]"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="flex items-center justify-between p-6 border-b border-outline-variant">
+              <h2 class="text-xl font-bold font-headline text-on-surface">
+                {{ t('subscriptions.templates.title') }}
+              </h2>
+              <button
+                (click)="closeTemplatePicker()"
+                class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-full transition-colors"
+              >
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div class="p-6">
+              <!-- Category Filter Buttons -->
+              <div class="flex flex-wrap gap-2 mb-6">
+                @for (cat of templateCategories(); track cat.value) {
+                  <button
+                    (click)="filterByCategory(cat.value)"
+                    class="px-3 py-1.5 rounded-full text-sm font-medium transition-all"
+                    [class.bg-primary]="selectedCategory() === cat.value"
+                    [class.text-on-primary]="selectedCategory() === cat.value"
+                    [class.bg-surface-container-low]="selectedCategory() !== cat.value"
+                    [class.text-on-surface]="selectedCategory() !== cat.value"
+                    [class.hover:bg-surface-container-high]="selectedCategory() !== cat.value"
+                  >
+                    {{ cat.label }}
+                  </button>
+                }
+              </div>
+
+              <!-- Loading State -->
+              @if (isLoadingTemplates()) {
+                <div class="flex justify-center py-12">
+                  <div
+                    class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+                  ></div>
+                </div>
+              }
+
+              <!-- Templates Grid -->
+              @if (!isLoadingTemplates()) {
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  @for (template of filteredTemplates(); track template.id) {
+                    <button
+                      (click)="selectTemplate(template.id)"
+                      class="flex items-center gap-3 p-4 bg-surface-container-low rounded-[var(--radius-card)] hover:bg-surface-container-high transition-all text-left group"
+                    >
+                      <!-- Icon -->
+                      <div
+                        class="w-12 h-12 rounded-full bg-primary-container/20 flex items-center justify-center shrink-0 group-hover:bg-primary-container/30 transition-colors"
+                      >
+                        @if (template.iconUrl) {
+                          <img
+                            [src]="template.iconUrl"
+                            [alt]="template.name"
+                            class="w-6 h-6 object-contain"
+                          />
+                        } @else {
+                          <span class="material-symbols-outlined text-[24px] text-primary">
+                            {{
+                              template.category === 'STREAMING'
+                                ? 'smart_display'
+                                : template.category === 'MUSIC'
+                                  ? 'music_note'
+                                  : template.category === 'CLOUD_STORAGE'
+                                    ? 'cloud'
+                                    : template.category === 'PRODUCTIVITY'
+                                      ? 'edit_document'
+                                      : template.category === 'GAMING'
+                                        ? 'sports_esports'
+                                        : template.category === 'NEWS'
+                                          ? 'newspaper'
+                                          : template.category === 'FITNESS'
+                                            ? 'fitness_center'
+                                            : template.category === 'FOOD'
+                                              ? 'restaurant'
+                                              : template.category === 'TRANSPORT'
+                                                ? 'directions_car'
+                                                : template.category === 'UTILITIES'
+                                                  ? 'bolt'
+                                                  : 'subscriptions'
+                            }}
+                          </span>
+                        }
+                      </div>
+                      <!-- Info -->
+                      <div class="flex-1 min-w-0">
+                        <div class="font-semibold text-on-surface truncate">
+                          {{ template.name }}
+                        </div>
+                        <div class="text-sm text-on-surface-variant">
+                          {{ template.defaultAmount | currency: 'USD' : 'symbol' : '1.0-0' }} /
+                          {{
+                            template.defaultFrequency === 'ANNUAL'
+                              ? t('subscriptions.yearly')
+                              : t('subscriptions.monthly')
+                          }}
+                        </div>
+                      </div>
+                    </button>
+                  }
+                </div>
+              }
+
+              <!-- Empty State -->
+              @if (!isLoadingTemplates() && filteredTemplates().length === 0) {
+                <div class="text-center py-8 text-on-surface-variant">
+                  <span class="material-symbols-outlined text-[48px] mb-2">category</span>
+                  <p>{{ t('common.noResults') }}</p>
+                </div>
+              }
+
+              <!-- Start from Scratch Button -->
+              <div class="border-t border-outline-variant pt-6">
+                <button
+                  (click)="startFromScratch()"
+                  class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] hover:bg-surface-container-high transition-all"
+                >
+                  <span class="material-symbols-outlined text-[20px]">add</span>
+                  {{ t('subscriptions.templates.startFromScratch') }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+
       <!-- Create / Edit Modal -->
       @if (isModalOpen()) {
         <div
@@ -369,13 +510,24 @@ import { Category } from '../../shared/models/transaction.model';
             (click)="$event.stopPropagation()"
           >
             <div class="flex items-center justify-between p-6 border-b border-outline-variant">
-              <h2 class="text-xl font-bold font-headline text-on-surface">
-                {{
-                  modalMode() === 'create'
-                    ? t('subscriptions.modalTitleCreate')
-                    : t('subscriptions.modalTitleEdit')
-                }}
-              </h2>
+              <div class="flex items-center gap-3">
+                @if (modalMode() === 'create') {
+                  <button
+                    (click)="closeModalAndShowTemplates()"
+                    class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-full transition-colors -ml-2"
+                    [title]="t('subscriptions.templates.back')"
+                  >
+                    <span class="material-symbols-outlined">arrow_back</span>
+                  </button>
+                }
+                <h2 class="text-xl font-bold font-headline text-on-surface">
+                  {{
+                    modalMode() === 'create'
+                      ? t('subscriptions.modalTitleCreate')
+                      : t('subscriptions.modalTitleEdit')
+                  }}
+                </h2>
+              </div>
               <button
                 (click)="closeModal()"
                 class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high rounded-full transition-colors"
@@ -755,6 +907,7 @@ import { Category } from '../../shared/models/transaction.model';
 export class SubscriptionsComponent {
   private readonly subscriptionService = inject(SubscriptionService);
   private readonly categoryService = inject(CategoryService);
+  private readonly templateService = inject(SubscriptionTemplateService);
   private readonly transloco = inject(TranslocoService);
 
   // Filters state
@@ -787,6 +940,12 @@ export class SubscriptionsComponent {
   // Toast state
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Template picker state
+  readonly isTemplatePickerOpen = signal(false);
+  readonly templates = signal<SubscriptionTemplate[]>([]);
+  readonly selectedCategory = signal<TemplateCategory | 'ALL'>('ALL');
+  readonly isLoadingTemplates = signal(false);
+
   // Form data
   formData = {
     description: '',
@@ -808,6 +967,59 @@ export class SubscriptionsComponent {
     { value: 'GENERAL', label: this.transloco.translate('subscriptions.typeGeneral') },
     { value: 'DIGITAL_SERVICE', label: this.transloco.translate('subscriptions.typeDigital') },
   ]);
+
+  // Template categories for filter buttons
+  readonly templateCategories = computed<{ value: TemplateCategory | 'ALL'; label: string }[]>(
+    () => [
+      { value: 'ALL', label: this.transloco.translate('subscriptions.templates.all') },
+      {
+        value: 'STREAMING',
+        label: this.transloco.translate('subscriptions.templates.categories.STREAMING'),
+      },
+      {
+        value: 'MUSIC',
+        label: this.transloco.translate('subscriptions.templates.categories.MUSIC'),
+      },
+      {
+        value: 'CLOUD_STORAGE',
+        label: this.transloco.translate('subscriptions.templates.categories.CLOUD_STORAGE'),
+      },
+      {
+        value: 'PRODUCTIVITY',
+        label: this.transloco.translate('subscriptions.templates.categories.PRODUCTIVITY'),
+      },
+      {
+        value: 'GAMING',
+        label: this.transloco.translate('subscriptions.templates.categories.GAMING'),
+      },
+      { value: 'NEWS', label: this.transloco.translate('subscriptions.templates.categories.NEWS') },
+      {
+        value: 'FITNESS',
+        label: this.transloco.translate('subscriptions.templates.categories.FITNESS'),
+      },
+      { value: 'FOOD', label: this.transloco.translate('subscriptions.templates.categories.FOOD') },
+      {
+        value: 'TRANSPORT',
+        label: this.transloco.translate('subscriptions.templates.categories.TRANSPORT'),
+      },
+      {
+        value: 'UTILITIES',
+        label: this.transloco.translate('subscriptions.templates.categories.UTILITIES'),
+      },
+      {
+        value: 'OTHER',
+        label: this.transloco.translate('subscriptions.templates.categories.OTHER'),
+      },
+    ],
+  );
+
+  // Filtered templates based on selected category
+  readonly filteredTemplates = computed(() => {
+    const all = this.templates();
+    const category = this.selectedCategory();
+    if (category === 'ALL') return all;
+    return all.filter((t) => t.category === category);
+  });
 
   constructor() {
     this.loadData();
@@ -899,6 +1111,73 @@ export class SubscriptionsComponent {
       serviceUrl: '',
     };
     this.formError.set('');
+    // Show template picker first
+    this.openTemplatePicker();
+  }
+
+  // Template picker methods
+  openTemplatePicker(): void {
+    this.isTemplatePickerOpen.set(true);
+    this.selectedCategory.set('ALL');
+    this.loadTemplates();
+  }
+
+  closeTemplatePicker(): void {
+    this.isTemplatePickerOpen.set(false);
+    this.templates.set([]);
+  }
+
+  loadTemplates(): void {
+    this.isLoadingTemplates.set(true);
+    const category = this.selectedCategory();
+    const categoryFilter = category === 'ALL' ? undefined : category;
+
+    this.templateService.getTemplates(categoryFilter).subscribe({
+      next: (data) => {
+        this.templates.set(data);
+        this.isLoadingTemplates.set(false);
+      },
+      error: () => {
+        this.isLoadingTemplates.set(false);
+        this.showToast(this.transloco.translate('subscriptions.toastLoadError'), 'error');
+      },
+    });
+  }
+
+  filterByCategory(category: TemplateCategory | 'ALL'): void {
+    this.selectedCategory.set(category);
+    this.loadTemplates();
+  }
+
+  selectTemplate(templateId: string): void {
+    this.isLoadingTemplates.set(true);
+    this.templateService.getTemplatePrefill(templateId).subscribe({
+      next: (prefill: SubscriptionTemplatePrefill) => {
+        // Prefill form data
+        this.formData = {
+          description: prefill.description,
+          amount: prefill.amount,
+          categoryId: prefill.categoryId ?? '',
+          frequency: prefill.frequency,
+          billingDay: 1,
+          startDate: new Date().toISOString().split('T')[0],
+          type: prefill.type,
+          serviceUrl: prefill.serviceUrl ?? '',
+        };
+        this.isLoadingTemplates.set(false);
+        this.closeTemplatePicker();
+        this.isModalOpen.set(true);
+      },
+      error: () => {
+        this.isLoadingTemplates.set(false);
+        this.showToast(this.transloco.translate('subscriptions.toastLoadError'), 'error');
+      },
+    });
+  }
+
+  startFromScratch(): void {
+    // Form already reset in openCreateModal
+    this.closeTemplatePicker();
     this.isModalOpen.set(true);
   }
 
@@ -924,6 +1203,12 @@ export class SubscriptionsComponent {
     this.formError.set('');
     this.modalMode.set('create');
     this.editingSubscription.set(null);
+  }
+
+  closeModalAndShowTemplates(): void {
+    this.isModalOpen.set(false);
+    this.formError.set('');
+    this.openTemplatePicker();
   }
 
   openHistoryModal(sub: Subscription): void {
