@@ -149,4 +149,13 @@ export class AuthService {
       }
     }
   }
+
+  /**
+   * Updates the current user signal and localStorage.
+   * Called when user updates their profile via settings.
+   */
+  updateCurrentUser(user: User): void {
+    localStorage.setItem('user', JSON.stringify(user));
+    this._currentUser.set(user);
+  }
 }

@@ -2,13 +2,22 @@ import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { UserService } from '../../core/services/user.service';
+import { UpdateProfileDto, User } from '../../shared/models/user.model';
+import {
+  Currency,
+  DateFormat,
+  PreferencesLanguage,
+  UserPreferences,
+} from '../../shared/models/user-preferences.model';
 
 interface AppSettings {
-  currency: string;
-  dateFormat: string;
-  language: string;
+  currency: Currency;
+  dateFormat: DateFormat;
+  language: PreferencesLanguage;
   emailNotifications: boolean;
   pushNotifications: boolean;
   budgetAlerts: boolean;
@@ -105,7 +114,6 @@ interface AppSettings {
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                  <option value="JPY">JPY (¥)</option>
                   <option value="ARS">ARS ($)</option>
                 </select>
               </div>
@@ -125,9 +133,9 @@ interface AppSettings {
                   (ngModelChange)="saveSettings()"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
-                  <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                  <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                  <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                 </select>
               </div>
 
@@ -512,13 +520,17 @@ interface AppSettings {
 })
 export class SettingsComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly preferencesService = inject(PreferencesService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   readonly currentUser = this.authService.currentUser;
 
+  // Settings state from API
   settings: AppSettings = {
     currency: 'USD',
-    dateFormat: 'MM/dd/yyyy',
+    dateFormat: 'MM/DD/YYYY',
     language: 'en',
     emailNotifications: true,
     pushNotifications: false,
@@ -526,30 +538,59 @@ export class SettingsComponent implements OnInit {
     subscriptionReminders: true,
   };
 
+  // Loading states
+  readonly isLoadingPreferences = signal(false);
+  readonly isSavingPreferences = signal(false);
+  readonly isLoadingUser = signal(false);
+
   showClearDataConfirm = false;
   showLogoutConfirm = false;
   showDeleteAccountConfirm = false;
 
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Edit user state
+  readonly isEditingProfile = signal(false);
+  editProfileData: UpdateProfileDto = {};
+
   ngOnInit(): void {
-    this.loadSettings();
+    this.loadPreferences();
   }
 
-  private loadSettings(): void {
-    const saved = localStorage.getItem('appSettings');
-    if (saved) {
-      try {
-        this.settings = { ...this.settings, ...JSON.parse(saved) };
-      } catch {
-        // Invalid settings, use defaults
-      }
-    }
+  private loadPreferences(): void {
+    this.isLoadingPreferences.set(true);
+    this.preferencesService.getPreferences().subscribe({
+      next: (prefs) => {
+        this.settings = {
+          currency: prefs.currency,
+          dateFormat: prefs.dateFormat,
+          language: prefs.language,
+          emailNotifications: prefs.emailNotifications,
+          pushNotifications: prefs.pushNotifications,
+          budgetAlerts: prefs.budgetAlerts,
+          subscriptionReminders: prefs.subscriptionReminders,
+        };
+        this.isLoadingPreferences.set(false);
+      },
+      error: () => {
+        this.isLoadingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastLoadError'), 'error');
+      },
+    });
   }
 
   saveSettings(): void {
-    localStorage.setItem('appSettings', JSON.stringify(this.settings));
-    this.showToast('Settings saved', 'success');
+    this.isSavingPreferences.set(true);
+    this.preferencesService.updatePreferences(this.settings).subscribe({
+      next: () => {
+        this.isSavingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastSaved'), 'success');
+      },
+      error: () => {
+        this.isSavingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastSaveError'), 'error');
+      },
+    });
   }
 
   toggleSetting(key: keyof AppSettings): void {
@@ -557,6 +598,36 @@ export class SettingsComponent implements OnInit {
       (this.settings[key] as boolean) = !(this.settings[key] as boolean);
       this.saveSettings();
     }
+  }
+
+  startEditProfile(): void {
+    const user = this.currentUser();
+    if (user) {
+      this.editProfileData = { name: user.name, email: user.email };
+      this.isEditingProfile.set(true);
+    }
+  }
+
+  cancelEditProfile(): void {
+    this.isEditingProfile.set(false);
+    this.editProfileData = {};
+  }
+
+  saveProfile(): void {
+    this.isLoadingUser.set(true);
+    this.userService.updateMe(this.editProfileData).subscribe({
+      next: (updatedUser) => {
+        // Update auth service with new user data
+        this.authService.updateCurrentUser(updatedUser);
+        this.isLoadingUser.set(false);
+        this.isEditingProfile.set(false);
+        this.showToast(this.transloco.translate('settings.profileSuccess'), 'success');
+      },
+      error: () => {
+        this.isLoadingUser.set(false);
+        this.showToast(this.transloco.translate('settings.profileError'), 'error');
+      },
+    });
   }
 
   exportData(): void {
@@ -578,7 +649,7 @@ export class SettingsComponent implements OnInit {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    this.showToast('Data exported successfully', 'success');
+    this.showToast(this.transloco.translate('settings.exportSuccess'), 'success');
   }
 
   clearLocalData(): void {
@@ -595,7 +666,7 @@ export class SettingsComponent implements OnInit {
 
     keysToRemove.forEach((key) => localStorage.removeItem(key));
     this.showClearDataConfirm = false;
-    this.showToast('Local data cleared', 'success');
+    this.showToast(this.transloco.translate('settings.clearLocalDataSuccess'), 'success');
   }
 
   logout(): void {
