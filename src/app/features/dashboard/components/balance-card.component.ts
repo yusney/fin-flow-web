@@ -5,6 +5,7 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import { TransactionService } from '../../../core/services/transaction.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 @Component({
   selector: 'app-balance-card',
@@ -24,7 +25,7 @@ import { TransactionService } from '../../../core/services/transaction.service';
           <div
             class="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold font-headline mt-1 lg:mt-2 tabular-nums tracking-tighter text-on-surface"
           >
-            {{ totalBalance() | currency: 'USD' : 'symbol' : '1.2-2' }}
+            {{ totalBalance() | currency: prefs.currency() : 'symbol' : '1.2-2' }}
           </div>
         </div>
 
@@ -36,17 +37,21 @@ import { TransactionService } from '../../../core/services/transaction.service';
           <div class="flex items-center gap-x-6 sm:gap-x-6 lg:gap-x-8">
             <!-- Income -->
             <div class="flex flex-col">
-              <span class="text-xs text-on-surface-variant mb-0.5 lg:mb-1">{{ t('dashboard.monthlyIncome') }}</span>
+              <span class="text-xs text-on-surface-variant mb-0.5 lg:mb-1">{{
+                t('dashboard.monthlyIncome')
+              }}</span>
               <span class="text-secondary text-lg lg:text-xl font-bold font-headline tabular-nums">
-                +{{ monthlyIncome() | currency: 'USD' : 'symbol' : '1.0-0' }}
+                +{{ monthlyIncome() | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </span>
             </div>
 
             <!-- Expenses -->
             <div class="flex flex-col">
-              <span class="text-xs text-on-surface-variant mb-0.5 lg:mb-1">{{ t('dashboard.monthlyExpenses') }}</span>
+              <span class="text-xs text-on-surface-variant mb-0.5 lg:mb-1">{{
+                t('dashboard.monthlyExpenses')
+              }}</span>
               <span class="text-tertiary text-lg lg:text-xl font-bold font-headline tabular-nums">
-                -{{ monthlyExpenses() | currency: 'USD' : 'symbol' : '1.0-0' }}
+                -{{ monthlyExpenses() | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </span>
             </div>
           </div>
@@ -70,6 +75,7 @@ import { TransactionService } from '../../../core/services/transaction.service';
 export class BalanceCardComponent {
   private readonly txService = inject(TransactionService);
   private readonly transloco = inject(TranslocoService);
+  readonly prefs = inject(PreferencesService);
 
   private readonly now = new Date();
   private readonly monthFrom = new Date(this.now.getFullYear(), this.now.getMonth(), 1)

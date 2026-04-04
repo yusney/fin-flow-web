@@ -6,79 +6,85 @@ import { toSignal } from '@angular/core/rxjs-interop';
 
 import { BudgetService } from '../../../core/services/budget.service';
 import { Budget, BudgetStatus, budgetStatus } from '../../../shared/models/budget.model';
+import { PreferencesService } from '../../../core/services/preferences.service';
 
 @Component({
   selector: 'app-budget-section',
   imports: [CurrencyPipe, RouterLink, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
-    <div class="flex justify-between items-end mb-4 lg:mb-6">
-      <h2 class="text-lg lg:text-2xl font-bold font-headline text-on-surface">{{ t('dashboard.budgets') }}</h2>
-      <span class="text-xs lg:text-sm text-on-surface-variant">{{ t('dashboard.period', { month: currentMonthLabel() }) }}</span>
-    </div>
+      <div class="flex justify-between items-end mb-4 lg:mb-6">
+        <h2 class="text-lg lg:text-2xl font-bold font-headline text-on-surface">
+          {{ t('dashboard.budgets') }}
+        </h2>
+        <span class="text-xs lg:text-sm text-on-surface-variant">{{
+          t('dashboard.period', { month: currentMonthLabel() })
+        }}</span>
+      </div>
 
-    <div
-      class="bg-surface-container-lowest p-4 lg:p-8 rounded-[var(--radius-card)] space-y-4 lg:space-y-8 shadow-[var(--shadow-card)]"
-    >
-      @for (budget of budgets(); track budget.id) {
-        <div>
-          <!-- Row: icon + label + amount -->
-          <div class="flex justify-between mb-2 lg:mb-3">
-            <div class="flex items-center gap-x-2">
-              <span
-                class="material-symbols-outlined text-[20px] lg:text-[24px]"
-                [class]="iconColorClass(budget)"
-              >
-                {{ budget.icon ?? 'category' }}
-              </span>
-              <span class="font-bold font-headline text-sm text-on-surface">
-                {{ budget.category }}
+      <div
+        class="bg-surface-container-lowest p-4 lg:p-8 rounded-[var(--radius-card)] space-y-4 lg:space-y-8 shadow-[var(--shadow-card)]"
+      >
+        @for (budget of budgets(); track budget.id) {
+          <div>
+            <!-- Row: icon + label + amount -->
+            <div class="flex justify-between mb-2 lg:mb-3">
+              <div class="flex items-center gap-x-2">
+                <span
+                  class="material-symbols-outlined text-[20px] lg:text-[24px]"
+                  [class]="iconColorClass(budget)"
+                >
+                  {{ budget.icon ?? 'category' }}
+                </span>
+                <span class="font-bold font-headline text-sm text-on-surface">
+                  {{ budget.category }}
+                </span>
+              </div>
+              <span class="text-xs font-label tabular-nums text-on-surface-variant">
+                <span class="font-bold" [class]="spentColorClass(budget)">
+                  {{ budget.spent | currency: prefs.currency() : 'symbol' : '1.0-0' }}
+                </span>
+                /
+                {{ budget.limitAmount | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </span>
             </div>
-            <span class="text-xs font-label tabular-nums text-on-surface-variant">
-              <span class="font-bold" [class]="spentColorClass(budget)">
-                {{ budget.spent | currency: 'USD' : 'symbol' : '1.0-0' }}
-              </span>
-              /
-              {{ budget.limitAmount | currency: 'USD' : 'symbol' : '1.0-0' }}
-            </span>
-          </div>
 
-          <!-- Progress bar -->
-          <div
-            class="w-full h-2 lg:h-3 bg-surface-container-highest rounded-[var(--radius-progress)] overflow-hidden"
-          >
+            <!-- Progress bar -->
             <div
-              class="h-full rounded-[var(--radius-progress)] transition-all"
-              [class]="barColorClass(budget)"
-              [style.width]="progressWidth(budget)"
-            ></div>
+              class="w-full h-2 lg:h-3 bg-surface-container-highest rounded-[var(--radius-progress)] overflow-hidden"
+            >
+              <div
+                class="h-full rounded-[var(--radius-progress)] transition-all"
+                [class]="barColorClass(budget)"
+                [style.width]="progressWidth(budget)"
+              ></div>
+            </div>
+
+            <!-- Status label -->
+            <p
+              class="text-[10px] mt-1.5 lg:mt-2 font-bold uppercase tracking-wider"
+              [class]="statusColorClass(budget)"
+            >
+              {{ statusLabel(budget) }}
+            </p>
           </div>
+        }
 
-          <!-- Status label -->
-          <p
-            class="text-[10px] mt-1.5 lg:mt-2 font-bold uppercase tracking-wider"
-            [class]="statusColorClass(budget)"
-          >
-            {{ statusLabel(budget) }}
-          </p>
-        </div>
-      }
-
-      <!-- Adjust Budgets CTA -->
-      <a
-        routerLink="/budgets"
-        class="block w-full py-3 lg:py-4 bg-surface-container-low text-on-surface font-bold rounded-[var(--radius-xl)] hover:bg-surface-container-high transition-colors text-xs lg:text-sm uppercase tracking-widest text-center"
-      >
-        {{ t('dashboard.adjustBudgets') }}
-      </a>
-    </div>
+        <!-- Adjust Budgets CTA -->
+        <a
+          routerLink="/budgets"
+          class="block w-full py-3 lg:py-4 bg-surface-container-low text-on-surface font-bold rounded-[var(--radius-xl)] hover:bg-surface-container-high transition-colors text-xs lg:text-sm uppercase tracking-widest text-center"
+        >
+          {{ t('dashboard.adjustBudgets') }}
+        </a>
+      </div>
     </ng-container>
   `,
 })
 export class BudgetSectionComponent {
   private readonly budgetService = inject(BudgetService);
   private readonly transloco = inject(TranslocoService);
+  readonly prefs = inject(PreferencesService);
 
   currentMonthLabel(): string {
     const locale = this.transloco.getActiveLang() === 'es' ? 'es-ES' : 'en-US';
