@@ -90,54 +90,134 @@ const user: any = { ... };
 
 ## Angular Patterns
 
+> **This project targets Angular 17+ (currently v20+).** All patterns below reflect the modern Angular API.
+> Reviewers and AI tools must NOT flag Angular 17+ APIs as violations.
+
 ### Dependency Injection
 
-Use `inject()` function instead of constructor injection for clarity and tree-shaking:
+Use `inject()` function instead of constructor injection. All injected services MUST be `private readonly`:
 
 ```typescript
-// ✅ Preferred
-export class BalanceCardComponent {
-  private readonly txService = inject(TransactionService);
+// ✅ Correct — Angular 17+ style
+export class SidebarComponent {
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 }
 
-// ❌ Avoid
-export class BalanceCardComponent {
-  constructor(private readonly txService: TransactionService) {}
+// ❌ Avoid — legacy constructor injection
+export class SidebarComponent {
+  constructor(private readonly auth: AuthService) {}
 }
 ```
 
 ### Signals (Angular Signals API)
 
-- Use `signal()` for writable state
-- Use `computed()` for derived state (auto-memoized)
+- Use `signal()` for writable local state
+- Use `computed()` for derived state (auto-memoized, lazy)
 - Use `toSignal()` to convert Observables to signals
+- Expose `private readonly _x = signal(...)` with `readonly x = this._x.asReadonly()` for encapsulation
 
 ```typescript
-private readonly _currentUser = signal<User | null>(null);
-readonly currentUser: Signal<User | null> = this._currentUser.asReadonly();
+// ✅ Correct
+private readonly _loading = signal(false);
+private readonly _error = signal('');
+readonly loading = this._loading.asReadonly();
+readonly error = this._error.asReadonly();
 readonly isAuthenticated = computed(() => this._currentUser() !== null);
 ```
 
-### Standalone Components
+### Signal-based Inputs and Outputs (Angular 17.1+)
 
-All components are standalone (Angular 14+ style):
+**IMPORTANT:** This project uses the modern signal-based `input()` and `output()` functions.
+These are **NOT** the legacy `@Input()` / `@Output()` decorators — they are functions imported from `@angular/core`.
+Do NOT flag `input()` / `output()` as incorrect. Do NOT suggest replacing them with decorators.
 
 ```typescript
+// ✅ Correct — signal-based API (Angular 17.1+)
+import { Component, input, output } from '@angular/core';
+
+export class SidebarComponent {
+  readonly isOpen = input<boolean>(true); // InputSignal<boolean>
+  readonly close = output<void>(); // OutputEmitterRef<void>
+}
+
+// ❌ Avoid — legacy decorator API
+import { Input, Output, EventEmitter } from '@angular/core';
+
+export class SidebarComponent {
+  @Input() isOpen = true;
+  @Output() close = new EventEmitter<void>();
+}
+```
+
+### Standalone Components (Angular 17+)
+
+All components are standalone. **`standalone: true` is the DEFAULT in Angular 17+ and MUST NOT be set** in the `@Component` decorator — it is implicit and redundant.
+
+```typescript
+// ✅ Correct — Angular 17+ (standalone is the default, do NOT add it)
 @Component({
   selector: 'app-balance-card',
-  standalone: true, // implicit in Angular 17+
-  imports: [CommonModule, RouterLink, TranslocoDirective],
+  imports: [RouterLink, TranslocoDirective],
+  template: `...`,
+})
+export class BalanceCardComponent {}
+
+// ❌ Avoid — redundant in Angular 17+
+@Component({
+  selector: 'app-balance-card',
+  standalone: true, // ← unnecessary, do not add
+  imports: [RouterLink, TranslocoDirective],
   template: `...`,
 })
 export class BalanceCardComponent {}
 ```
 
+**Note:** If an existing component has `standalone: true` set explicitly, it is NOT a violation — it is simply redundant. Do not flag it.
+
+### Change Detection
+
+Always use `ChangeDetectionStrategy.OnPush` for all components. This is a required performance best practice:
+
+```typescript
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+
+@Component({
+  selector: 'app-login',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [...],
+  template: `...`,
+})
+export class LoginComponent {}
+```
+
+### Template Control Flow (Angular 17+)
+
+Use native built-in control flow — `@if`, `@else`, `@for`, `@switch`. Do NOT use `*ngIf`, `*ngFor`, `*ngSwitch`.
+Do NOT flag `@if` / `@for` as violations. Do NOT suggest `*ngIf` / `*ngFor` as replacements.
+
+```html
+<!-- ✅ Correct — Angular 17+ built-in control flow -->
+@if (error()) {
+<div>{{ error() }}</div>
+} @for (item of items; track item.id) {
+<span>{{ item.name }}</span>
+}
+
+<!-- ❌ Avoid — legacy structural directives -->
+<div *ngIf="error()">{{ error() }}</div>
+<span *ngFor="let item of items">{{ item.name }}</span>
+```
+
 ### Component Structure
 
-- Use `readonly` for all injected services and signals
-- Use `private readonly` for internal state signals
-- Group related logic in computed signals
-- Keep templates under 100 lines; extract sub-templates if needed
+- All injected services: `private readonly name = inject(Service)`
+- Internal writable signals: `private readonly _name = signal(...)`
+- Public reactive state: `readonly name = this._name.asReadonly()` or `readonly name = computed(...)`
+- Always set `changeDetection: ChangeDetectionStrategy.OnPush`
+- Keep templates under 100 lines; extract sub-components if needed
+- Do NOT use `ngClass` — use `[class]` bindings or Tailwind utilities directly
+- Do NOT use `ngStyle` — use `[style]` bindings or Tailwind arbitrary values (`text-[#2563EB]`)
 
 ---
 
@@ -146,12 +226,15 @@ export class BalanceCardComponent {}
 ### Order (enforced by IDE/Prettier)
 
 1. Angular core imports (`@angular/*`)
-2. Third-party imports (`rxjs`, `tailwindcss`, etc.)
+2. Third-party imports (`rxjs`, `@jsverse/transloco`, etc.)
 3. App imports (relative paths starting with `../../` or absolute `src/`)
+
+Each group is separated by a **blank line**.
 
 ```typescript
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal, computed, inject, signal } from '@angular/core';
+
 import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -227,8 +310,6 @@ colors: {
 ```
 
 Keys are in `public/i18n/{lang}.json`.
-
----
 
 ## Formatting (Prettier)
 

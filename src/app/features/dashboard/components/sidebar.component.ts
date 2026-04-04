@@ -1,5 +1,6 @@
-import { Component, inject, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { AuthService } from '../../../core/services/auth.service';
@@ -12,6 +13,8 @@ interface NavItem {
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
@@ -31,9 +34,13 @@ interface NavItem {
         >
           <span class="material-symbols-outlined text-[24px]">close</span>
         </button>
+
         <!-- Logo -->
-        <div class="text-2xl font-bold text-on-surface mb-8 font-headline tracking-tight">
-          fin-flow
+        <div class="flex items-center gap-x-3 mb-8">
+          <img src="/logo.svg" alt="FinFlow" class="w-8 h-8" />
+          <span class="text-2xl font-bold font-headline tracking-tight">
+            <span class="text-[#2563EB]">Fin</span><span class="text-[#10B981]">Flow</span>
+          </span>
         </div>
 
         <!-- Navigation -->
