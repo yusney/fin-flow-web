@@ -154,7 +154,25 @@
     "errorCategory": "La categoría es obligatoria",
     "errorBillingDay": "El día de cobro debe estar entre 1 y 31",
     "errorStartDate": "La fecha de inicio es obligatoria",
-    "errorServiceUrl": "La URL del servicio es obligatoria para Servicio Digital"
+    "errorServiceUrl": "La URL del servicio es obligatoria para Servicio Digital",
+    "templates": {
+      "title": "Plantillas de Suscripción",
+      "all": "Todas",
+      "startFromScratch": "Empezar desde Cero",
+      "categories": {
+        "STREAMING": "Streaming",
+        "MUSIC": "Música",
+        "CLOUD_STORAGE": "Almacenamiento en la Nube",
+        "PRODUCTIVITY": "Productividad",
+        "GAMING": "Gaming",
+        "NEWS": "Noticias y Publicaciones",
+        "FITNESS": "Fitness y Salud",
+        "FOOD": "Comida y Delivery",
+        "TRANSPORT": "Transporte",
+        "UTILITIES": "Servicios",
+        "OTHER": "Otros"
+      }
+    }
   },
   "budgets": {
     "title": "Presupuestos",

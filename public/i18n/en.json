@@ -154,7 +154,25 @@
     "errorCategory": "Category is required",
     "errorBillingDay": "Billing day must be between 1 and 31",
     "errorStartDate": "Start date is required",
-    "errorServiceUrl": "Service URL is required for Digital Service"
+    "errorServiceUrl": "Service URL is required for Digital Service",
+    "templates": {
+      "title": "Subscription Templates",
+      "all": "All",
+      "startFromScratch": "Start from Scratch",
+      "categories": {
+        "STREAMING": "Streaming",
+        "MUSIC": "Music",
+        "CLOUD_STORAGE": "Cloud Storage",
+        "PRODUCTIVITY": "Productivity",
+        "GAMING": "Gaming",
+        "NEWS": "News & Publications",
+        "FITNESS": "Fitness & Health",
+        "FOOD": "Food & Delivery",
+        "TRANSPORT": "Transport",
+        "UTILITIES": "Utilities",
+        "OTHER": "Other"
+      }
+    }
   },
   "budgets": {
     "title": "Budgets",
