@@ -1,4 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, computed, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -48,18 +48,71 @@ interface AppSettings {
           <section
             class="bg-surface-container-lowest rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-card)]"
           >
-            <div class="flex items-center gap-4 mb-6">
-              <div
-                class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center"
-              >
-                <span class="material-symbols-outlined text-[32px] text-primary">person</span>
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0"
+                >
+                  <span class="material-symbols-outlined text-[32px] text-primary">person</span>
+                </div>
+                <div>
+                  @if (isEditingProfile()) {
+                    <div class="flex flex-col gap-2">
+                      <label class="text-xs text-on-surface-variant font-medium">
+                        {{ t('settings.nameLabel') }}
+                      </label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editProfileData.name"
+                        [placeholder]="t('settings.namePlaceholder')"
+                        class="bg-surface-container px-3 py-2 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors min-w-[200px]"
+                      />
+                      <div class="flex gap-2 mt-1">
+                        <button
+                          (click)="saveProfile()"
+                          [disabled]="
+                            isLoadingUser() ||
+                            !editProfileData.name ||
+                            editProfileData.name!.length < 2
+                          "
+                          class="bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] px-4 py-2 text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          @if (isLoadingUser()) {
+                            <span class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-[16px] animate-spin"
+                                >progress_activity</span
+                              >
+                              {{ t('settings.saveProfile') }}
+                            </span>
+                          } @else {
+                            {{ t('settings.saveProfile') }}
+                          }
+                        </button>
+                        <button
+                          (click)="cancelEditProfile()"
+                          class="bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] px-4 py-2 text-sm hover:bg-surface-container-high transition-colors"
+                        >
+                          {{ t('settings.cancelEdit') }}
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <h2 class="text-xl font-bold font-headline text-on-surface">
+                      {{ currentUser()?.name || 'User' }}
+                    </h2>
+                    <p class="text-sm text-on-surface-variant">{{ currentUser()?.email }}</p>
+                  }
+                </div>
               </div>
-              <div>
-                <h2 class="text-xl font-bold font-headline text-on-surface">
-                  {{ currentUser()?.name || 'User' }}
-                </h2>
-                <p class="text-sm text-on-surface-variant">{{ currentUser()?.email }}</p>
-              </div>
+              @if (!isEditingProfile()) {
+                <button
+                  (click)="startEditProfile()"
+                  class="flex items-center gap-1.5 text-sm text-primary font-medium hover:text-primary/80 transition-colors flex-shrink-0"
+                >
+                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                  {{ t('settings.editProfile') }}
+                </button>
+              }
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -83,6 +136,108 @@ interface AppSettings {
                 </div>
               </div>
             </div>
+          </section>
+
+          <!-- Change Password Section -->
+          <section
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-card)]"
+          >
+            <div class="flex items-center gap-3 mb-6">
+              <span class="material-symbols-outlined text-primary text-[24px]">lock</span>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.changePassword') }}
+              </h2>
+            </div>
+
+            @if (!isEditingPassword()) {
+              <button
+                (click)="startChangePassword()"
+                class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant text-on-surface font-medium text-sm rounded-[var(--radius-button)] hover:bg-surface-container-low transition-colors"
+              >
+                <span class="material-symbols-outlined text-[18px]">key</span>
+                {{ t('settings.changePassword') }}
+              </button>
+            } @else {
+              <div class="space-y-4">
+                <!-- Current Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.currentPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().currentPassword"
+                    [placeholder]="t('settings.currentPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                  />
+                  @if (passwordRequiredError()) {
+                    <p class="text-xs text-error">{{ t('settings.passwordRequired') }}</p>
+                  }
+                </div>
+
+                <!-- New Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.newPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().newPassword"
+                    [placeholder]="t('settings.newPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.confirmPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().confirmPassword"
+                    [placeholder]="t('settings.confirmPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                    [class.border-error]="passwordMismatch()"
+                  />
+                  @if (passwordMismatch()) {
+                    <p class="text-xs text-error">{{ t('settings.passwordMismatch') }}</p>
+                  }
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                  <button
+                    (click)="changePassword()"
+                    [disabled]="
+                      isLoadingUser() ||
+                      passwordMismatch() ||
+                      passwordRequiredError() ||
+                      !editPasswordData().currentPassword ||
+                      !editPasswordData().newPassword
+                    "
+                    class="bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] px-4 py-2.5 text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    @if (isLoadingUser()) {
+                      <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px] animate-spin"
+                          >progress_activity</span
+                        >
+                        {{ t('settings.changePassword') }}
+                      </span>
+                    } @else {
+                      {{ t('settings.changePassword') }}
+                    }
+                  </button>
+                  <button
+                    (click)="cancelChangePassword()"
+                    class="bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] px-4 py-2.5 text-sm hover:bg-surface-container-high transition-colors"
+                  >
+                    {{ t('settings.cancelEdit') }}
+                  </button>
+                </div>
+              </div>
+            }
           </section>
 
           <!-- Preferences Section -->
@@ -555,6 +710,25 @@ export class SettingsComponent implements OnInit {
   readonly isEditingProfile = signal(false);
   editProfileData: UpdateProfileDto = {};
 
+  // Password change state
+  readonly isEditingPassword = signal(false);
+  readonly editPasswordData = signal({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  readonly passwordMismatch = computed(
+    () =>
+      this.editPasswordData().confirmPassword.length > 0 &&
+      this.editPasswordData().newPassword !== this.editPasswordData().confirmPassword,
+  );
+  readonly passwordRequiredError = computed(
+    () =>
+      this.editPasswordData().newPassword.length > 0 &&
+      this.editPasswordData().currentPassword.length === 0,
+  );
+
   ngOnInit(): void {
     this.loadPreferences();
   }
@@ -627,9 +801,8 @@ export class SettingsComponent implements OnInit {
 
   saveProfile(): void {
     this.isLoadingUser.set(true);
-    this.userService.updateMe(this.editProfileData).subscribe({
+    this.userService.updateMe({ name: this.editProfileData.name }).subscribe({
       next: (updatedUser) => {
-        // Update auth service with new user data
         this.authService.updateCurrentUser(updatedUser);
         this.isLoadingUser.set(false);
         this.isEditingProfile.set(false);
@@ -640,6 +813,38 @@ export class SettingsComponent implements OnInit {
         this.showToast(this.transloco.translate('settings.profileError'), 'error');
       },
     });
+  }
+
+  startChangePassword(): void {
+    this.editPasswordData.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    this.isEditingPassword.set(true);
+  }
+
+  cancelChangePassword(): void {
+    this.editPasswordData.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    this.isEditingPassword.set(false);
+  }
+
+  changePassword(): void {
+    if (this.passwordRequiredError() || this.passwordMismatch()) return;
+
+    this.isLoadingUser.set(true);
+    this.userService
+      .updateMe({
+        currentPassword: this.editPasswordData().currentPassword,
+        newPassword: this.editPasswordData().newPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoadingUser.set(false);
+          this.cancelChangePassword();
+          this.showToast(this.transloco.translate('settings.passwordChanged'), 'success');
+        },
+        error: () => {
+          this.isLoadingUser.set(false);
+          this.showToast(this.transloco.translate('settings.passwordChangeError'), 'error');
+        },
+      });
   }
 
   exportData(): void {
