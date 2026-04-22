@@ -1,27 +1,80 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
+import { of } from 'rxjs';
+
 import { SettingsComponent } from './settings.component';
 import { AuthService } from '../../core/services/auth.service';
-import { signal } from '@angular/core';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { LanguageService } from '../../core/services/language.service';
+import { UserService } from '../../core/services/user.service';
+import { UserPreferences } from '../../shared/models/user-preferences.model';
+import { provideTranslocoTesting } from '../../testing';
+
+const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' };
+
+const mockPreferences: UserPreferences = {
+  id: 'pref-1',
+  userId: '1',
+  currency: 'USD',
+  dateFormat: 'MM/DD/YYYY',
+  language: 'en',
+  emailNotifications: true,
+  pushNotifications: false,
+  budgetAlerts: true,
+  subscriptionReminders: true,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+};
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
-  let authServiceMock: {
-    currentUser: ReturnType<typeof signal>;
-    logout: ReturnType<typeof vi.fn>;
-  };
+
+  let authServiceMock: ReturnType<typeof createAuthServiceMock>;
+  let preferencesServiceMock: ReturnType<typeof createPreferencesServiceMock>;
+  let languageServiceMock: ReturnType<typeof createLanguageServiceMock>;
+  let userServiceMock: ReturnType<typeof createUserServiceMock>;
+
+  function createAuthServiceMock() {
+    return {
+      currentUser: signal(mockUser),
+      logout: vi.fn(),
+      updateCurrentUser: vi.fn(),
+    };
+  }
+
+  function createPreferencesServiceMock() {
+    return {
+      getPreferences: vi.fn().mockReturnValue(of(mockPreferences)),
+      updatePreferences: vi.fn().mockReturnValue(of(mockPreferences)),
+      setPreferences: vi.fn(),
+    };
+  }
+
+  function createLanguageServiceMock() {
+    return {
+      setLanguage: vi.fn(),
+      getActiveLang: vi.fn().mockReturnValue('en'),
+    };
+  }
+
+  function createUserServiceMock() {
+    return {
+      updateMe: vi.fn().mockReturnValue(of(mockUser)),
+    };
+  }
 
   beforeEach(async () => {
     localStorage.clear();
 
-    authServiceMock = {
-      currentUser: signal({ id: '1', email: 'test@example.com', name: 'Test User' }),
-      logout: vi.fn(),
-    };
+    authServiceMock = createAuthServiceMock();
+    preferencesServiceMock = createPreferencesServiceMock();
+    languageServiceMock = createLanguageServiceMock();
+    userServiceMock = createUserServiceMock();
 
     await TestBed.configureTestingModule({
       imports: [SettingsComponent],
@@ -29,7 +82,11 @@ describe('SettingsComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: '**', redirectTo: '' }]),
+        provideTranslocoTesting(),
         { provide: AuthService, useValue: authServiceMock },
+        { provide: PreferencesService, useValue: preferencesServiceMock },
+        { provide: LanguageService, useValue: languageServiceMock },
+        { provide: UserService, useValue: userServiceMock },
       ],
     }).compileComponents();
 
@@ -54,27 +111,25 @@ describe('SettingsComponent', () => {
 
   describe('settings', () => {
     it('should load default settings', () => {
-      expect(component.settings.currency).toBe('USD');
-      expect(component.settings.language).toBe('en');
-      expect(component.settings.emailNotifications).toBe(true);
+      expect(component.settings().currency).toBe('USD');
+      expect(component.settings().language).toBe('en');
+      expect(component.settings().emailNotifications).toBe(true);
     });
 
-    it('should save settings to localStorage', () => {
-      component.settings.currency = 'EUR';
-      component.saveSettings();
+    it('should update a setting and call saveSettings', () => {
+      component.updateSetting('currency', 'EUR');
 
-      const saved = localStorage.getItem('appSettings');
-      expect(saved).toBeTruthy();
-      expect(JSON.parse(saved!).currency).toBe('EUR');
+      expect(component.settings().currency).toBe('EUR');
+      expect(preferencesServiceMock.updatePreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ currency: 'EUR' }),
+      );
     });
 
-    it('should toggle boolean settings', () => {
-      const initialValue = component.settings.emailNotifications;
-      component.toggleSetting('emailNotifications');
-      expect(component.settings.emailNotifications).toBe(!initialValue);
+    it('should toggle boolean settings via updateSetting', () => {
+      const initialValue = component.settings().emailNotifications;
+      component.updateSetting('emailNotifications', !initialValue);
 
-      const saved = JSON.parse(localStorage.getItem('appSettings')!);
-      expect(saved.emailNotifications).toBe(!initialValue);
+      expect(component.settings().emailNotifications).toBe(!initialValue);
     });
   });
 
