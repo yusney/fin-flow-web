@@ -1,5 +1,8 @@
 FROM node:22-alpine AS build
 
+ARG API_URL=https://api.finflow.donduque.dev/api
+ENV API_URL=$API_URL
+
 RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 
 WORKDIR /app
@@ -11,6 +14,9 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 RUN pnpm run build
+
+RUN find /app/dist/fin-flow-angular/browser -type f \( -name "*.js" -o -name "*.mjs" \) \
+    -exec sed -i "s|__API_URL__|${API_URL}|g" {} +
 
 FROM nginx:1.27-alpine
 
