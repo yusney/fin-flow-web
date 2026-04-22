@@ -218,6 +218,19 @@
     "userId": "ID de Usuario",
     "accountStatus": "Estado de la Cuenta",
     "active": "Activa",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Ingresá tu nombre completo",
+    "editProfile": "Editar Perfil",
+    "saveProfile": "Guardar Cambios",
+    "cancelEdit": "Cancelar",
+    "changePassword": "Cambiar Contraseña",
+    "currentPasswordLabel": "Contraseña Actual",
+    "newPasswordLabel": "Nueva Contraseña",
+    "confirmPasswordLabel": "Confirmar Nueva Contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordRequired": "La contraseña actual es requerida para establecer una nueva",
+    "passwordChanged": "Contraseña actualizada correctamente",
+    "passwordChangeError": "Error al actualizar la contraseña. Verificá tu contraseña actual.",
     "preferences": "Preferencias",
     "currency": "Moneda",
     "currencyHint": "Seleccioná tu moneda preferida",
@@ -251,6 +264,11 @@
     "appVersion": "Versión de la App",
     "builtWith": "Hecho con",
     "featureNotImplemented": "Esta función aún no está implementada.",
-    "version": "FinFlow v{{ version }}"
+    "version": "FinFlow v{{ version }}",
+    "toastLoadError": "Error al cargar los ajustes",
+    "toastSaved": "Ajustes guardados",
+    "toastSaveError": "Error al guardar los ajustes",
+    "exportSuccess": "Datos exportados correctamente",
+    "clearLocalDataSuccess": "Datos locales eliminados"
   }
 }

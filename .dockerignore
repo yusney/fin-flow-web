@@ -1,0 +1,14 @@
+node_modules
+dist
+.angular
+.git
+.vscode
+.idea
+coverage
+tmp
+out-tsc
+*.md
+!README.md
+.editorconfig
+.prettierrc
+tsconfig.spec.json

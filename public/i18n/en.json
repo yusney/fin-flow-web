@@ -218,6 +218,19 @@
     "userId": "User ID",
     "accountStatus": "Account Status",
     "active": "Active",
+    "nameLabel": "Name",
+    "namePlaceholder": "Enter your full name",
+    "editProfile": "Edit Profile",
+    "saveProfile": "Save Changes",
+    "cancelEdit": "Cancel",
+    "changePassword": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "newPasswordLabel": "New Password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "passwordMismatch": "Passwords do not match",
+    "passwordRequired": "Current password is required to set a new one",
+    "passwordChanged": "Password updated successfully",
+    "passwordChangeError": "Failed to update password. Check your current password.",
     "preferences": "Preferences",
     "currency": "Currency",
     "currencyHint": "Select your preferred currency",
@@ -251,6 +264,11 @@
     "appVersion": "App Version",
     "builtWith": "Built with",
     "featureNotImplemented": "This feature is not yet implemented.",
-    "version": "FinFlow v{{ version }}"
+    "version": "FinFlow v{{ version }}",
+    "toastLoadError": "Failed to load settings",
+    "toastSaved": "Settings saved",
+    "toastSaveError": "Failed to save settings",
+    "exportSuccess": "Data exported successfully",
+    "clearLocalDataSuccess": "Local data cleared"
   }
 }

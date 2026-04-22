@@ -1,14 +1,33 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { TranslocoDirective } from '@jsverse/transloco';
+
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { AuthService } from '../../core/services/auth.service';
+import { PreferencesService } from '../../core/services/preferences.service';
+import { LanguageService } from '../../core/services/language.service';
+import { UserService } from '../../core/services/user.service';
+import { UpdateProfileDto, User } from '../../shared/models/user.model';
+import { ToggleComponent } from '../../shared/components/toggle.component';
+import {
+  Currency,
+  DateFormat,
+  PreferencesLanguage,
+  UserPreferences,
+} from '../../shared/models/user-preferences.model';
 
 interface AppSettings {
-  currency: string;
-  dateFormat: string;
-  language: string;
+  currency: Currency;
+  dateFormat: DateFormat;
+  language: PreferencesLanguage;
   emailNotifications: boolean;
   pushNotifications: boolean;
   budgetAlerts: boolean;
@@ -18,7 +37,8 @@ interface AppSettings {
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslocoDirective],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CommonModule, FormsModule, TranslocoDirective, ToggleComponent],
   template: `
     <ng-container *transloco="let t">
       <!-- Header -->
@@ -38,18 +58,71 @@ interface AppSettings {
           <section
             class="bg-surface-container-lowest rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-card)]"
           >
-            <div class="flex items-center gap-4 mb-6">
-              <div
-                class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center"
-              >
-                <span class="material-symbols-outlined text-[32px] text-primary">person</span>
+            <div class="flex items-start justify-between gap-4 mb-6">
+              <div class="flex items-center gap-4">
+                <div
+                  class="w-16 h-16 rounded-full bg-primary-container flex items-center justify-center flex-shrink-0"
+                >
+                  <span class="material-symbols-outlined text-[32px] text-primary">person</span>
+                </div>
+                <div>
+                  @if (isEditingProfile()) {
+                    <div class="flex flex-col gap-2">
+                      <label class="text-xs text-on-surface-variant font-medium">
+                        {{ t('settings.nameLabel') }}
+                      </label>
+                      <input
+                        type="text"
+                        [(ngModel)]="editProfileData.name"
+                        [placeholder]="t('settings.namePlaceholder')"
+                        class="bg-surface-container px-3 py-2 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors min-w-[200px]"
+                      />
+                      <div class="flex gap-2 mt-1">
+                        <button
+                          (click)="saveProfile()"
+                          [disabled]="
+                            isLoadingUser() ||
+                            !editProfileData.name ||
+                            editProfileData.name!.length < 2
+                          "
+                          class="bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] px-4 py-2 text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          @if (isLoadingUser()) {
+                            <span class="flex items-center gap-1">
+                              <span class="material-symbols-outlined text-[16px] animate-spin"
+                                >progress_activity</span
+                              >
+                              {{ t('settings.saveProfile') }}
+                            </span>
+                          } @else {
+                            {{ t('settings.saveProfile') }}
+                          }
+                        </button>
+                        <button
+                          (click)="cancelEditProfile()"
+                          class="bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] px-4 py-2 text-sm hover:bg-surface-container-high transition-colors"
+                        >
+                          {{ t('settings.cancelEdit') }}
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <h2 class="text-xl font-bold font-headline text-on-surface">
+                      {{ currentUser()?.name || 'User' }}
+                    </h2>
+                    <p class="text-sm text-on-surface-variant">{{ currentUser()?.email }}</p>
+                  }
+                </div>
               </div>
-              <div>
-                <h2 class="text-xl font-bold font-headline text-on-surface">
-                  {{ currentUser()?.name || 'User' }}
-                </h2>
-                <p class="text-sm text-on-surface-variant">{{ currentUser()?.email }}</p>
-              </div>
+              @if (!isEditingProfile()) {
+                <button
+                  (click)="startEditProfile()"
+                  class="flex items-center gap-1.5 text-sm text-primary font-medium hover:text-primary/80 transition-colors flex-shrink-0"
+                >
+                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                  {{ t('settings.editProfile') }}
+                </button>
+              }
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -75,6 +148,108 @@ interface AppSettings {
             </div>
           </section>
 
+          <!-- Change Password Section -->
+          <section
+            class="bg-surface-container-lowest rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-card)]"
+          >
+            <div class="flex items-center gap-3 mb-6">
+              <span class="material-symbols-outlined text-primary text-[24px]">lock</span>
+              <h2 class="text-lg font-bold font-headline text-on-surface">
+                {{ t('settings.changePassword') }}
+              </h2>
+            </div>
+
+            @if (!isEditingPassword()) {
+              <button
+                (click)="startChangePassword()"
+                class="flex items-center gap-2 px-4 py-2.5 border border-outline-variant text-on-surface font-medium text-sm rounded-[var(--radius-button)] hover:bg-surface-container-low transition-colors"
+              >
+                <span class="material-symbols-outlined text-[18px]">key</span>
+                {{ t('settings.changePassword') }}
+              </button>
+            } @else {
+              <div class="space-y-4">
+                <!-- Current Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.currentPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().currentPassword"
+                    [placeholder]="t('settings.currentPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                  />
+                  @if (passwordRequiredError()) {
+                    <p class="text-xs text-error">{{ t('settings.passwordRequired') }}</p>
+                  }
+                </div>
+
+                <!-- New Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.newPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().newPassword"
+                    [placeholder]="t('settings.newPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                  />
+                </div>
+
+                <!-- Confirm Password -->
+                <div class="flex flex-col gap-1.5">
+                  <label class="text-xs font-medium text-on-surface-variant">
+                    {{ t('settings.confirmPasswordLabel') }}
+                  </label>
+                  <input
+                    type="password"
+                    [(ngModel)]="editPasswordData().confirmPassword"
+                    [placeholder]="t('settings.confirmPasswordLabel')"
+                    class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+                    [class.border-error]="passwordMismatch()"
+                  />
+                  @if (passwordMismatch()) {
+                    <p class="text-xs text-error">{{ t('settings.passwordMismatch') }}</p>
+                  }
+                </div>
+
+                <!-- Actions -->
+                <div class="flex gap-3 pt-2">
+                  <button
+                    (click)="changePassword()"
+                    [disabled]="
+                      isLoadingUser() ||
+                      passwordMismatch() ||
+                      passwordRequiredError() ||
+                      !editPasswordData().currentPassword ||
+                      !editPasswordData().newPassword
+                    "
+                    class="bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] px-4 py-2.5 text-sm hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    @if (isLoadingUser()) {
+                      <span class="flex items-center gap-1">
+                        <span class="material-symbols-outlined text-[16px] animate-spin"
+                          >progress_activity</span
+                        >
+                        {{ t('settings.changePassword') }}
+                      </span>
+                    } @else {
+                      {{ t('settings.changePassword') }}
+                    }
+                  </button>
+                  <button
+                    (click)="cancelChangePassword()"
+                    class="bg-surface-container-low text-on-surface font-semibold rounded-[var(--radius-button)] px-4 py-2.5 text-sm hover:bg-surface-container-high transition-colors"
+                  >
+                    {{ t('settings.cancelEdit') }}
+                  </button>
+                </div>
+              </div>
+            }
+          </section>
+
           <!-- Preferences Section -->
           <section
             class="bg-surface-container-lowest rounded-[var(--radius-card)] p-6 shadow-[var(--shadow-card)]"
@@ -98,14 +273,13 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.currency"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().currency"
+                  (ngModelChange)="updateSetting('currency', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[120px]"
                 >
                   <option value="USD">USD ($)</option>
                   <option value="EUR">EUR (€)</option>
                   <option value="GBP">GBP (£)</option>
-                  <option value="JPY">JPY (¥)</option>
                   <option value="ARS">ARS ($)</option>
                 </select>
               </div>
@@ -121,13 +295,13 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.dateFormat"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().dateFormat"
+                  (ngModelChange)="updateSetting('dateFormat', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
-                  <option value="MM/dd/yyyy">MM/DD/YYYY</option>
-                  <option value="dd/MM/yyyy">DD/MM/YYYY</option>
-                  <option value="yyyy-MM-dd">YYYY-MM-DD</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
                 </select>
               </div>
 
@@ -140,8 +314,8 @@ interface AppSettings {
                   </div>
                 </div>
                 <select
-                  [(ngModel)]="settings.language"
-                  (ngModelChange)="saveSettings()"
+                  [ngModel]="settings().language"
+                  (ngModelChange)="updateSetting('language', $event)"
                   class="px-4 py-2 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer min-w-[140px]"
                 >
                   <option value="en">English</option>
@@ -164,98 +338,42 @@ interface AppSettings {
 
             <div class="space-y-4">
               <!-- Email Notifications -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.emailNotifications') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.emailNotificationsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('emailNotifications')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.emailNotifications"
-                  [class.bg-surface-container-high]="!settings.emailNotifications"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.emailNotifications"
-                    [class.translate-x-1]="!settings.emailNotifications"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.emailNotifications')"
+                  [hint]="t('settings.emailNotificationsHint')"
+                  [checked]="settings().emailNotifications"
+                  (toggled)="updateSetting('emailNotifications', $event)"
+                />
               </div>
 
               <!-- Push Notifications -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.pushNotifications') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.pushNotificationsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('pushNotifications')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.pushNotifications"
-                  [class.bg-surface-container-high]="!settings.pushNotifications"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.pushNotifications"
-                    [class.translate-x-1]="!settings.pushNotifications"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.pushNotifications')"
+                  [hint]="t('settings.pushNotificationsHint')"
+                  [checked]="settings().pushNotifications"
+                  (toggled)="updateSetting('pushNotifications', $event)"
+                />
               </div>
 
               <!-- Budget Alerts -->
-              <div class="flex items-center justify-between py-3 border-b border-outline-variant">
-                <div>
-                  <div class="font-medium text-on-surface">{{ t('settings.budgetAlerts') }}</div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.budgetAlertsHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('budgetAlerts')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.budgetAlerts"
-                  [class.bg-surface-container-high]="!settings.budgetAlerts"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.budgetAlerts"
-                    [class.translate-x-1]="!settings.budgetAlerts"
-                  ></span>
-                </button>
+              <div class="border-b border-outline-variant">
+                <app-toggle
+                  [label]="t('settings.budgetAlerts')"
+                  [hint]="t('settings.budgetAlertsHint')"
+                  [checked]="settings().budgetAlerts"
+                  (toggled)="updateSetting('budgetAlerts', $event)"
+                />
               </div>
 
               <!-- Subscription Reminders -->
-              <div class="flex items-center justify-between py-3">
-                <div>
-                  <div class="font-medium text-on-surface">
-                    {{ t('settings.subscriptionReminders') }}
-                  </div>
-                  <div class="text-sm text-on-surface-variant">
-                    {{ t('settings.subscriptionRemindersHint') }}
-                  </div>
-                </div>
-                <button
-                  (click)="toggleSetting('subscriptionReminders')"
-                  class="relative w-12 h-6 rounded-full transition-colors duration-200"
-                  [class.bg-secondary]="settings.subscriptionReminders"
-                  [class.bg-surface-container-high]="!settings.subscriptionReminders"
-                >
-                  <span
-                    class="absolute top-1 w-4 h-4 rounded-full bg-on-secondary transition-transform duration-200"
-                    [class.translate-x-7]="settings.subscriptionReminders"
-                    [class.translate-x-1]="!settings.subscriptionReminders"
-                  ></span>
-                </button>
-              </div>
+              <app-toggle
+                [label]="t('settings.subscriptionReminders')"
+                [hint]="t('settings.subscriptionRemindersHint')"
+                [checked]="settings().subscriptionReminders"
+                (toggled)="updateSetting('subscriptionReminders', $event)"
+              />
             </div>
           </section>
 
@@ -512,19 +630,29 @@ interface AppSettings {
 })
 export class SettingsComponent implements OnInit {
   private readonly authService = inject(AuthService);
+  private readonly preferencesService = inject(PreferencesService);
+  private readonly languageService = inject(LanguageService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
+  private readonly transloco = inject(TranslocoService);
 
   readonly currentUser = this.authService.currentUser;
 
-  settings: AppSettings = {
+  // Settings state from API — signal so Angular detects changes after HTTP response
+  readonly settings = signal<AppSettings>({
     currency: 'USD',
-    dateFormat: 'MM/dd/yyyy',
+    dateFormat: 'MM/DD/YYYY',
     language: 'en',
     emailNotifications: true,
     pushNotifications: false,
     budgetAlerts: true,
     subscriptionReminders: true,
-  };
+  });
+
+  // Loading states
+  readonly isLoadingPreferences = signal(false);
+  readonly isSavingPreferences = signal(false);
+  readonly isLoadingUser = signal(false);
 
   showClearDataConfirm = false;
   showLogoutConfirm = false;
@@ -532,31 +660,137 @@ export class SettingsComponent implements OnInit {
 
   readonly toast = signal<{ message: string; type: 'success' | 'error' } | null>(null);
 
+  // Edit user state
+  readonly isEditingProfile = signal(false);
+  editProfileData: UpdateProfileDto = {};
+
+  // Password change state
+  readonly isEditingPassword = signal(false);
+  readonly editPasswordData = signal({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
+
+  readonly passwordMismatch = computed(
+    () =>
+      this.editPasswordData().confirmPassword.length > 0 &&
+      this.editPasswordData().newPassword !== this.editPasswordData().confirmPassword,
+  );
+  readonly passwordRequiredError = computed(
+    () =>
+      this.editPasswordData().newPassword.length > 0 &&
+      this.editPasswordData().currentPassword.length === 0,
+  );
+
   ngOnInit(): void {
-    this.loadSettings();
+    this.loadPreferences();
   }
 
-  private loadSettings(): void {
-    const saved = localStorage.getItem('appSettings');
-    if (saved) {
-      try {
-        this.settings = { ...this.settings, ...JSON.parse(saved) };
-      } catch {
-        // Invalid settings, use defaults
-      }
-    }
+  private loadPreferences(): void {
+    this.isLoadingPreferences.set(true);
+    this.preferencesService.getPreferences().subscribe({
+      next: (prefs) => {
+        if (prefs) {
+          this.settings.set({
+            currency: prefs.currency,
+            dateFormat: prefs.dateFormat,
+            language: prefs.language,
+            emailNotifications: prefs.emailNotifications,
+            pushNotifications: prefs.pushNotifications,
+            budgetAlerts: prefs.budgetAlerts,
+            subscriptionReminders: prefs.subscriptionReminders,
+          });
+        }
+        this.isLoadingPreferences.set(false);
+      },
+      error: () => {
+        this.isLoadingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastLoadError'), 'error');
+      },
+    });
+  }
+
+  updateSetting<K extends keyof AppSettings>(key: K, value: AppSettings[K]): void {
+    this.settings.update((s) => ({ ...s, [key]: value }));
+    this.saveSettings();
   }
 
   saveSettings(): void {
-    localStorage.setItem('appSettings', JSON.stringify(this.settings));
-    this.showToast('Settings saved', 'success');
+    this.isSavingPreferences.set(true);
+    this.preferencesService.updatePreferences(this.settings()).subscribe({
+      next: (updatedPrefs) => {
+        this.isSavingPreferences.set(false);
+        this.languageService.setLanguage(this.settings().language);
+        this.preferencesService.setPreferences(updatedPrefs);
+        this.showToast(this.transloco.translate('settings.toastSaved'), 'success');
+      },
+      error: () => {
+        this.isSavingPreferences.set(false);
+        this.showToast(this.transloco.translate('settings.toastSaveError'), 'error');
+      },
+    });
   }
 
-  toggleSetting(key: keyof AppSettings): void {
-    if (typeof this.settings[key] === 'boolean') {
-      (this.settings[key] as boolean) = !(this.settings[key] as boolean);
-      this.saveSettings();
+  startEditProfile(): void {
+    const user = this.currentUser();
+    if (user) {
+      this.editProfileData = { name: user.name, email: user.email };
+      this.isEditingProfile.set(true);
     }
+  }
+
+  cancelEditProfile(): void {
+    this.isEditingProfile.set(false);
+    this.editProfileData = {};
+  }
+
+  saveProfile(): void {
+    this.isLoadingUser.set(true);
+    this.userService.updateMe({ name: this.editProfileData.name }).subscribe({
+      next: (updatedUser) => {
+        this.authService.updateCurrentUser(updatedUser);
+        this.isLoadingUser.set(false);
+        this.isEditingProfile.set(false);
+        this.showToast(this.transloco.translate('settings.profileSuccess'), 'success');
+      },
+      error: () => {
+        this.isLoadingUser.set(false);
+        this.showToast(this.transloco.translate('settings.profileError'), 'error');
+      },
+    });
+  }
+
+  startChangePassword(): void {
+    this.editPasswordData.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    this.isEditingPassword.set(true);
+  }
+
+  cancelChangePassword(): void {
+    this.editPasswordData.set({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    this.isEditingPassword.set(false);
+  }
+
+  changePassword(): void {
+    if (this.passwordRequiredError() || this.passwordMismatch()) return;
+
+    this.isLoadingUser.set(true);
+    this.userService
+      .updateMe({
+        currentPassword: this.editPasswordData().currentPassword,
+        newPassword: this.editPasswordData().newPassword,
+      })
+      .subscribe({
+        next: () => {
+          this.isLoadingUser.set(false);
+          this.cancelChangePassword();
+          this.showToast(this.transloco.translate('settings.passwordChanged'), 'success');
+        },
+        error: () => {
+          this.isLoadingUser.set(false);
+          this.showToast(this.transloco.translate('settings.passwordChangeError'), 'error');
+        },
+      });
   }
 
   exportData(): void {
@@ -564,7 +798,7 @@ export class SettingsComponent implements OnInit {
       transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
       budgets: JSON.parse(localStorage.getItem('budgets') || '[]'),
       subscriptions: JSON.parse(localStorage.getItem('subscriptions') || '[]'),
-      settings: this.settings,
+      settings: this.settings(),
       exportDate: new Date().toISOString(),
     };
 
@@ -578,7 +812,7 @@ export class SettingsComponent implements OnInit {
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    this.showToast('Data exported successfully', 'success');
+    this.showToast(this.transloco.translate('settings.exportSuccess'), 'success');
   }
 
   clearLocalData(): void {
@@ -595,7 +829,7 @@ export class SettingsComponent implements OnInit {
 
     keysToRemove.forEach((key) => localStorage.removeItem(key));
     this.showClearDataConfirm = false;
-    this.showToast('Local data cleared', 'success');
+    this.showToast(this.transloco.translate('settings.clearLocalDataSuccess'), 'success');
   }
 
   logout(): void {

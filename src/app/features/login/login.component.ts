@@ -1,11 +1,18 @@
-import { Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+
 import { TranslocoDirective } from '@jsverse/transloco';
+import { switchMap } from 'rxjs';
+
 import { AuthService } from '../../core/services/auth.service';
+import { LanguageService } from '../../core/services/language.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [ReactiveFormsModule, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
@@ -14,8 +21,8 @@ import { AuthService } from '../../core/services/auth.service';
           <!-- Logo -->
           <div class="flex flex-col items-center mb-10">
             <img src="/logo.svg" alt="FinFlow" class="w-16 h-16 mb-4" />
-            <h1 class="text-2xl font-bold font-headline text-on-surface tracking-tight">
-              fin-flow
+            <h1 class="text-2xl font-bold font-headline tracking-tight">
+              <span class="text-[#2563EB]">Fin</span><span class="text-[#10B981]">Flow</span>
             </h1>
             <p class="text-sm text-on-surface-variant mt-1">{{ t('login.tagline') }}</p>
           </div>
@@ -104,33 +111,45 @@ export class LoginComponent {
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly preferencesService = inject(PreferencesService);
+  private readonly languageService = inject(LanguageService);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(4)]],
   });
 
-  readonly loading = signal(false);
-  readonly error = signal('');
+  private readonly _loading = signal(false);
+  private readonly _error = signal('');
+
+  readonly loading = this._loading.asReadonly();
+  readonly error = this._error.asReadonly();
 
   onSubmit(): void {
     if (this.form.invalid) return;
 
-    this.loading.set(true);
-    this.error.set('');
+    this._loading.set(true);
+    this._error.set('');
 
     const { email, password } = this.form.getRawValue();
 
-    this.auth.login(email, password).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.router.navigate(['/dashboard']);
-      },
-      error: (err: unknown) => {
-        this.loading.set(false);
-        const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
-        this.error.set(msg);
-      },
-    });
+    this.auth
+      .login(email, password)
+      .pipe(switchMap(() => this.preferencesService.getPreferences()))
+      .subscribe({
+        next: (prefs) => {
+          if (prefs) {
+            this.languageService.setLanguage(prefs.language);
+          }
+          this._loading.set(false);
+          this.router.navigate(['/dashboard']);
+        },
+        error: (err: unknown) => {
+          this._loading.set(false);
+          const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
+          console.error('Login error:', err);
+          this._error.set(msg);
+        },
+      });
   }
 }

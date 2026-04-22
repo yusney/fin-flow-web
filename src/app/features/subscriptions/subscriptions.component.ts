@@ -10,6 +10,7 @@ import {
   UpdateSubscriptionRequest,
 } from '../../core/services/subscription.service';
 import { CategoryService } from '../../core/services/category.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 import { SubscriptionTemplateService } from '../../core/services/subscription-template.service';
 import {
   Subscription,
@@ -52,7 +53,7 @@ import { Category } from '../../shared/models/transaction.model';
                   {{ t('subscriptions.monthly') }}
                 </div>
                 <div class="text-lg font-bold text-on-surface tabular-nums">
-                  {{ summary().totalMonthly | currency: 'USD' : 'symbol' : '1.0-0' }}
+                  {{ summary().totalMonthly | currency: prefs.currency() : 'symbol' : '1.0-0' }}
                 </div>
               </div>
               <div
@@ -62,7 +63,7 @@ import { Category } from '../../shared/models/transaction.model';
                   {{ t('subscriptions.yearly') }}
                 </div>
                 <div class="text-lg font-bold text-tertiary tabular-nums">
-                  {{ summary().totalYearly | currency: 'USD' : 'symbol' : '1.0-0' }}
+                  {{ summary().totalYearly | currency: prefs.currency() : 'symbol' : '1.0-0' }}
                 </div>
               </div>
               <div
@@ -256,7 +257,7 @@ import { Category } from '../../shared/models/transaction.model';
               <div class="flex justify-between items-center mb-4">
                 <div>
                   <div class="text-2xl font-bold font-label tabular-nums text-on-surface">
-                    {{ subscription.amount | currency: 'USD' : 'symbol' : '1.2-2' }}
+                    {{ subscription.amount | currency: prefs.currency() : 'symbol' : '1.2-2' }}
                   </div>
                   <div class="text-xs text-on-surface-variant">
                     {{
@@ -268,7 +269,9 @@ import { Category } from '../../shared/models/transaction.model';
                 </div>
                 <div class="text-right">
                   <div class="text-sm font-medium text-on-surface-variant">
-                    {{ getMonthlyCost(subscription) | currency: 'USD' : 'symbol' : '1.0-0'
+                    {{
+                      getMonthlyCost(subscription)
+                        | currency: prefs.currency() : 'symbol' : '1.0-0'
                     }}{{ t('subscriptions.perMonth') }}
                   </div>
                 </div>
@@ -463,7 +466,10 @@ import { Category } from '../../shared/models/transaction.model';
                           {{ template.name }}
                         </div>
                         <div class="text-sm text-on-surface-variant">
-                          {{ template.defaultAmount | currency: 'USD' : 'symbol' : '1.0-0' }} /
+                          {{
+                            template.defaultAmount | currency: prefs.currency() : 'symbol' : '1.0-0'
+                          }}
+                          /
                           {{
                             template.defaultFrequency === 'ANNUAL'
                               ? t('subscriptions.yearly')
@@ -562,9 +568,6 @@ import { Category } from '../../shared/models/transaction.model';
                   {{ t('subscriptions.fieldAmount') }}
                 </label>
                 <div class="relative">
-                  <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant"
-                    >$</span
-                  >
                   <input
                     type="number"
                     [(ngModel)]="formData.amount"
@@ -573,7 +576,7 @@ import { Category } from '../../shared/models/transaction.model';
                     min="0.01"
                     step="0.01"
                     placeholder="0.00"
-                    class="w-full pl-8 pr-4 py-3 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                    class="w-full px-4 py-3 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
               </div>
@@ -785,7 +788,7 @@ import { Category } from '../../shared/models/transaction.model';
                       <div class="flex-1 min-w-0">
                         <div class="flex items-center gap-2 mb-1">
                           <span class="font-bold text-on-surface tabular-nums">
-                            {{ version.amount | currency: 'USD' : 'symbol' : '1.2-2' }}
+                            {{ version.amount | currency: prefs.currency() : 'symbol' : '1.2-2' }}
                           </span>
                           <span class="text-xs text-on-surface-variant"
                             >·
@@ -909,6 +912,7 @@ export class SubscriptionsComponent {
   private readonly categoryService = inject(CategoryService);
   private readonly templateService = inject(SubscriptionTemplateService);
   private readonly transloco = inject(TranslocoService);
+  readonly prefs = inject(PreferencesService);
 
   // Filters state
   readonly searchQuery = signal('');

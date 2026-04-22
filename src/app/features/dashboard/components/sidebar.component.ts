@@ -1,18 +1,20 @@
-import { Component, inject, input, output, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+
 import { TranslocoDirective } from '@jsverse/transloco';
 
 import { AuthService } from '../../../core/services/auth.service';
-import { LanguageService, Language } from '../../../core/services/language.service';
 
 interface NavItem {
-  key: string;
-  icon: string;
-  route: string;
+  readonly key: string;
+  readonly icon: string;
+  readonly route: string;
 }
 
 @Component({
   selector: 'app-sidebar',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, RouterLinkActive, TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
@@ -32,9 +34,13 @@ interface NavItem {
         >
           <span class="material-symbols-outlined text-[24px]">close</span>
         </button>
+
         <!-- Logo -->
-        <div class="text-2xl font-bold text-on-surface mb-8 font-headline tracking-tight">
-          fin-flow
+        <div class="flex items-center gap-x-3 mb-8">
+          <img src="/logo.svg" alt="FinFlow" class="w-8 h-8" />
+          <span class="text-2xl font-bold font-headline tracking-tight">
+            <span class="text-[#2563EB]">Fin</span><span class="text-[#10B981]">Flow</span>
+          </span>
         </div>
 
         <!-- Navigation -->
@@ -64,22 +70,6 @@ interface NavItem {
           </a>
         </nav>
 
-        <!-- Language Switcher -->
-        <div class="flex items-center gap-2">
-          @for (lang of langService.availableLanguages; track lang.code) {
-            <button
-              (click)="setLang(lang.code)"
-              class="flex-1 py-1.5 text-xs font-bold rounded-[var(--radius-button)] transition-all"
-              [class.bg-primary]="activeLang() === lang.code"
-              [class.text-on-primary]="activeLang() === lang.code"
-              [class.bg-surface-container-high]="activeLang() !== lang.code"
-              [class.text-on-surface-variant]="activeLang() !== lang.code"
-            >
-              {{ lang.label }}
-            </button>
-          }
-        </div>
-
         <!-- User Profile -->
         <div class="pt-2">
           <div class="text-xs uppercase tracking-widest text-outline mb-2">
@@ -87,16 +77,26 @@ interface NavItem {
           </div>
           <div class="flex items-center gap-x-3">
             <div
-              class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center text-on-surface-variant"
+              class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden flex items-center justify-center text-on-surface-variant shrink-0"
             >
               <span class="material-symbols-outlined text-[20px]">person</span>
             </div>
-            <div>
-              <div class="text-sm font-semibold text-on-surface">
-                {{ currentUser()?.name ?? 'Alex Sterling' }}
+            <div class="flex-1 min-w-0">
+              <div class="text-sm font-semibold text-on-surface truncate">
+                {{ currentUser()?.name ?? '' }}
               </div>
-              <div class="text-xs text-on-surface-variant">{{ t('sidebar.accountType') }}</div>
+              <div class="text-xs text-on-surface-variant truncate">
+                {{ currentUser()?.email ?? '' }}
+              </div>
             </div>
+            <button
+              (click)="logout()"
+              class="p-1.5 rounded-[var(--radius-xl)] text-on-surface-variant hover:text-error hover:bg-error/10 transition-colors shrink-0"
+              [attr.aria-label]="t('sidebar.signOut')"
+              [title]="t('sidebar.signOut')"
+            >
+              <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
           </div>
         </div>
       </aside>
@@ -105,19 +105,13 @@ interface NavItem {
 })
 export class SidebarComponent {
   private readonly auth = inject(AuthService);
-  readonly langService = inject(LanguageService);
+  private readonly router = inject(Router);
 
   readonly currentUser = this.auth.currentUser;
-  readonly activeLang = signal<Language>(this.langService.getActiveLang());
 
   // Mobile controls
   readonly isOpen = input<boolean>(true);
   readonly close = output<void>();
-
-  setLang(lang: Language): void {
-    this.langService.setLanguage(lang);
-    this.activeLang.set(lang);
-  }
 
   readonly navItems: NavItem[] = [
     { key: 'dashboard', icon: 'dashboard', route: '/dashboard' },
@@ -129,5 +123,10 @@ export class SidebarComponent {
   onNavClick(): void {
     // Close sidebar on mobile when navigating
     this.close.emit();
+  }
+
+  logout(): void {
+    this.auth.logout();
+    this.router.navigate(['/login']);
   }
 }

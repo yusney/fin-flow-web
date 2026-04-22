@@ -1,19 +1,22 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+
 import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-service-unavailable',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [TranslocoDirective],
   template: `
     <ng-container *transloco="let t">
       <div class="min-h-screen bg-background flex items-center justify-center p-6">
         <div class="max-w-md w-full text-center">
-
           <!-- Icon -->
           <div class="flex justify-center mb-6">
-            <div class="w-24 h-24 rounded-full bg-tertiary-container/30 flex items-center justify-center">
+            <div
+              class="w-24 h-24 rounded-full bg-tertiary-container/30 flex items-center justify-center"
+            >
               <span class="material-symbols-outlined text-[48px] text-tertiary">cloud_off</span>
             </div>
           </div>
@@ -51,7 +54,9 @@ import { TranslocoDirective } from '@jsverse/transloco';
           </div>
 
           <!-- App name -->
-          <p class="mt-12 text-xs text-on-surface-variant/50 font-headline">fin-flow</p>
+          <p class="mt-12 text-xs font-headline font-bold">
+            <span class="text-[#2563EB]">Fin</span><span class="text-[#10B981]">Flow</span>
+          </p>
         </div>
       </div>
     </ng-container>

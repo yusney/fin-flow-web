@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 
 import { BudgetService, CreateBudgetRequest } from '../../core/services/budget.service';
 import { CategoryService } from '../../core/services/category.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 import { Budget, budgetStatus } from '../../shared/models/budget.model';
 import { Category } from '../../shared/models/transaction.model';
 
@@ -28,9 +29,11 @@ import { Category } from '../../shared/models/transaction.model';
             <div
               class="bg-surface-container-lowest px-4 py-3 rounded-[var(--radius-card)] shadow-[var(--shadow-card)]"
             >
-              <div class="text-xs text-on-surface-variant uppercase tracking-wider">Total Budget</div>
+              <div class="text-xs text-on-surface-variant uppercase tracking-wider">
+                Total Budget
+              </div>
               <div class="text-lg font-bold text-on-surface tabular-nums">
-                {{ summary().totalLimit | currency: 'USD' : 'symbol' : '1.0-0' }}
+                {{ summary().totalLimit | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </div>
             </div>
             <div
@@ -38,7 +41,7 @@ import { Category } from '../../shared/models/transaction.model';
             >
               <div class="text-xs text-on-surface-variant uppercase tracking-wider">Spent</div>
               <div class="text-lg font-bold text-tertiary tabular-nums">
-                {{ summary().totalSpent | currency: 'USD' : 'symbol' : '1.0-0' }}
+                {{ summary().totalSpent | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </div>
             </div>
             <div
@@ -50,7 +53,7 @@ import { Category } from '../../shared/models/transaction.model';
                 [class.text-secondary]="summary().remaining >= 0"
                 [class.text-tertiary]="summary().remaining < 0"
               >
-                {{ summary().remaining | currency: 'USD' : 'symbol' : '1.0-0' }}
+                {{ summary().remaining | currency: prefs.currency() : 'symbol' : '1.0-0' }}
               </div>
             </div>
           </div>
@@ -127,14 +130,18 @@ import { Category } from '../../shared/models/transaction.model';
       <!-- Loading State -->
       @if (isLoading()) {
         <div class="flex justify-center py-12">
-          <div class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+          <div
+            class="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin"
+          ></div>
         </div>
       }
 
       <!-- Empty State -->
       @if (!isLoading() && filteredBudgets().length === 0) {
         <div class="bg-surface-container-low rounded-[var(--radius-card)] p-12 text-center">
-          <span class="material-symbols-outlined text-[48px] text-outline mb-4">account_balance_wallet</span>
+          <span class="material-symbols-outlined text-[48px] text-outline mb-4"
+            >account_balance_wallet</span
+          >
           <h3 class="text-lg font-bold font-headline text-on-surface mb-2">No budgets found</h3>
           <p class="text-sm text-on-surface-variant mb-4">
             Try adjusting your filters or set a new budget.
@@ -154,7 +161,10 @@ import { Category } from '../../shared/models/transaction.model';
             <!-- Header -->
             <div class="flex items-start justify-between mb-4">
               <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full flex items-center justify-center" [class]="iconBgClass(budget)">
+                <div
+                  class="w-12 h-12 rounded-full flex items-center justify-center"
+                  [class]="iconBgClass(budget)"
+                >
                   <span class="material-symbols-outlined text-[24px]">
                     {{ budget.icon ?? 'account_balance_wallet' }}
                   </span>
@@ -163,7 +173,10 @@ import { Category } from '../../shared/models/transaction.model';
                   <h3 class="font-bold font-headline text-on-surface text-base lg:text-lg">
                     {{ budget.category }}
                   </h3>
-                  <span class="text-xs px-2 py-0.5 rounded-full font-medium" [class]="statusBadgeClass(budget)">
+                  <span
+                    class="text-xs px-2 py-0.5 rounded-full font-medium"
+                    [class]="statusBadgeClass(budget)"
+                  >
                     {{ getStatusLabel(budget) }}
                   </span>
                 </div>
@@ -174,14 +187,17 @@ import { Category } from '../../shared/models/transaction.model';
             <div class="flex justify-between items-end mb-3">
               <div>
                 <div class="text-xs text-on-surface-variant mb-1">Spent</div>
-                <div class="text-xl font-bold font-label tabular-nums" [class]="spentTextClass(budget)">
-                  {{ budget.spent | currency: 'USD' : 'symbol' : '1.0-0' }}
+                <div
+                  class="text-xl font-bold font-label tabular-nums"
+                  [class]="spentTextClass(budget)"
+                >
+                  {{ budget.spent | currency: prefs.currency() : 'symbol' : '1.0-0' }}
                 </div>
               </div>
               <div class="text-right">
                 <div class="text-xs text-on-surface-variant mb-1">Limit</div>
                 <div class="text-lg font-semibold text-on-surface-variant tabular-nums">
-                  {{ budget.limitAmount | currency: 'USD' : 'symbol' : '1.0-0' }}
+                  {{ budget.limitAmount | currency: prefs.currency() : 'symbol' : '1.0-0' }}
                 </div>
               </div>
             </div>
@@ -205,7 +221,9 @@ import { Category } from '../../shared/models/transaction.model';
                 [class.text-secondary]="getRemaining(budget) >= 0"
                 [class.text-tertiary]="getRemaining(budget) < 0"
               >
-                {{ getRemaining(budget) >= 0 ? '+' : '' }}{{ getRemaining(budget) | currency: 'USD' : 'symbol' : '1.0-0' }} remaining
+                {{ getRemaining(budget) >= 0 ? '+' : ''
+                }}{{ getRemaining(budget) | currency: prefs.currency() : 'symbol' : '1.0-0' }}
+                remaining
               </span>
             </div>
           </div>
@@ -245,7 +263,9 @@ import { Category } from '../../shared/models/transaction.model';
           <form (ngSubmit)="saveBudget()" class="p-6 space-y-4">
             <!-- Category — shows name, sends UUID -->
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+              <label
+                class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+              >
                 Category *
               </label>
               <select
@@ -263,11 +283,12 @@ import { Category } from '../../shared/models/transaction.model';
 
             <!-- Limit Amount -->
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+              <label
+                class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+              >
                 Budget Limit *
               </label>
               <div class="relative">
-                <span class="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant">$</span>
                 <input
                   type="number"
                   [(ngModel)]="formData.limitAmount"
@@ -276,7 +297,7 @@ import { Category } from '../../shared/models/transaction.model';
                   min="1"
                   step="1"
                   placeholder="0.00"
-                  class="w-full pl-8 pr-4 py-3 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+                  class="w-full px-4 py-3 bg-surface-container-low rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                 />
               </div>
             </div>
@@ -284,7 +305,9 @@ import { Category } from '../../shared/models/transaction.model';
             <!-- Month / Year -->
             <div class="flex gap-4">
               <div class="flex-1">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   Month
                 </label>
                 <select
@@ -298,7 +321,9 @@ import { Category } from '../../shared/models/transaction.model';
                 </select>
               </div>
               <div class="w-28">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2">
+                <label
+                  class="block text-xs font-semibold uppercase tracking-wider text-on-surface-variant mb-2"
+                >
                   Year
                 </label>
                 <input
@@ -335,7 +360,9 @@ import { Category } from '../../shared/models/transaction.model';
                 class="flex-1 px-4 py-3 bg-primary text-on-primary font-semibold rounded-[var(--radius-button)] hover:bg-primary-container transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 @if (isSaving()) {
-                  <div class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>
+                  <div
+                    class="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"
+                  ></div>
                 }
                 Set Budget
               </button>
@@ -359,17 +386,28 @@ import { Category } from '../../shared/models/transaction.model';
       </div>
     }
   `,
-  styles: [`
-    @keyframes fade-in {
-      from { opacity: 0; transform: translate(-50%, 10px); }
-      to { opacity: 1; transform: translate(-50%, 0); }
-    }
-    .animate-fade-in { animation: fade-in 200ms ease-out forwards; }
-  `],
+  styles: [
+    `
+      @keyframes fade-in {
+        from {
+          opacity: 0;
+          transform: translate(-50%, 10px);
+        }
+        to {
+          opacity: 1;
+          transform: translate(-50%, 0);
+        }
+      }
+      .animate-fade-in {
+        animation: fade-in 200ms ease-out forwards;
+      }
+    `,
+  ],
 })
 export class BudgetsComponent implements OnInit {
   private readonly budgetService = inject(BudgetService);
   private readonly categoryService = inject(CategoryService);
+  readonly prefs = inject(PreferencesService);
 
   // Filters state
   readonly searchQuery = signal('');
@@ -393,12 +431,18 @@ export class BudgetsComponent implements OnInit {
   };
 
   readonly months = [
-    { value: 1, label: 'January' }, { value: 2, label: 'February' },
-    { value: 3, label: 'March' }, { value: 4, label: 'April' },
-    { value: 5, label: 'May' }, { value: 6, label: 'June' },
-    { value: 7, label: 'July' }, { value: 8, label: 'August' },
-    { value: 9, label: 'September' }, { value: 10, label: 'October' },
-    { value: 11, label: 'November' }, { value: 12, label: 'December' },
+    { value: 1, label: 'January' },
+    { value: 2, label: 'February' },
+    { value: 3, label: 'March' },
+    { value: 4, label: 'April' },
+    { value: 5, label: 'May' },
+    { value: 6, label: 'June' },
+    { value: 7, label: 'July' },
+    { value: 8, label: 'August' },
+    { value: 9, label: 'September' },
+    { value: 10, label: 'October' },
+    { value: 11, label: 'November' },
+    { value: 12, label: 'December' },
   ];
 
   // Data signals
@@ -438,7 +482,9 @@ export class BudgetsComponent implements OnInit {
     () => this.searchQuery() !== '' || this.selectedStatus() !== 'all',
   );
 
-  onSearchChange(value: string): void { this.searchQuery.set(value); }
+  onSearchChange(value: string): void {
+    this.searchQuery.set(value);
+  }
   onStatusChange(value: string): void {
     this.selectedStatus.set(value as 'ok' | 'warning' | 'exceeded' | 'all');
   }
@@ -464,8 +510,14 @@ export class BudgetsComponent implements OnInit {
   }
 
   saveBudget(): void {
-    if (!this.formData.categoryId) { this.formError.set('Category is required'); return; }
-    if (this.formData.limitAmount <= 0) { this.formError.set('Limit must be greater than 0'); return; }
+    if (!this.formData.categoryId) {
+      this.formError.set('Category is required');
+      return;
+    }
+    if (this.formData.limitAmount <= 0) {
+      this.formError.set('Limit must be greater than 0');
+      return;
+    }
 
     this.isSaving.set(true);
 
