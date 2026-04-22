@@ -15,6 +15,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { TranslocoHttpLoader } from './core/transloco-loader';
 import { PreferencesService } from './core/services/preferences.service';
 import { LanguageService } from './core/services/language.service';
+import { loadConfig } from './core/services/config.loader';
 
 export function initializePreferences() {
   return () => {
@@ -51,6 +52,12 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadConfig,
+      multi: true,
+      deps: [],
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initializePreferences,
