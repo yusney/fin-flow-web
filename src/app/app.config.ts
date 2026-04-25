@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+
 import { provideTransloco } from '@jsverse/transloco';
 import { of, catchError, tap } from 'rxjs';
 
@@ -33,7 +34,10 @@ export function initializePreferences() {
           languageService.setLanguage(prefs.language);
         }
       }),
-      catchError(() => of(null)),
+      catchError((err: unknown) => {
+        console.warn('[initializePreferences] Failed to load preferences', err);
+        return of(null);
+      }),
     );
   };
 }
