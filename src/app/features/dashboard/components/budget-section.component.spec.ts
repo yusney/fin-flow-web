@@ -3,10 +3,23 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
+import { TranslocoService, TranslocoTestingModule } from '@jsverse/transloco';
 import { BudgetSectionComponent } from './budget-section.component';
 import { BudgetService } from '../../../core/services/budget.service';
+import { PreferencesService } from '../../../core/services/preferences.service';
+import { signal } from '@angular/core';
 import { of } from 'rxjs';
 import { Budget } from '../../../shared/models/budget.model';
+
+const EN_TRANSLATIONS = {
+  'dashboard.budgets': 'Budgets',
+  'dashboard.period': 'Period {{month}}',
+  'dashboard.adjustBudgets': 'Adjust Budgets',
+  'dashboard.nearLimit': 'Near monthly limit',
+  'dashboard.exceededBy': 'Exceeded by ${{amount}}',
+  'dashboard.paidFor': 'Paid for {{month}}',
+};
 
 describe('BudgetSectionComponent', () => {
   let component: BudgetSectionComponent;
@@ -49,18 +62,37 @@ describe('BudgetSectionComponent', () => {
     const mockBudgetService = {
       getBudgets: vi.fn().mockReturnValue(of(mockBudgets)),
     };
+    const prefsServiceMock = {
+      currency: signal('USD'),
+      angularDateFormat: signal('MM/dd/yyyy'),
+      getPreferences: vi.fn().mockReturnValue(of(null)),
+    };
 
     await TestBed.configureTestingModule({
-      imports: [BudgetSectionComponent],
+      imports: [
+        BudgetSectionComponent,
+        TranslocoTestingModule.forRoot({
+          langs: { en: EN_TRANSLATIONS },
+          translocoConfig: { defaultLang: 'en' },
+          preloadLangs: true,
+        }),
+      ],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         { provide: BudgetService, useValue: mockBudgetService },
+        { provide: PreferencesService, useValue: prefsServiceMock },
       ],
     }).compileComponents();
 
+    // Ensure translations are set synchronously
+    TestBed.inject(TranslocoService).setTranslation(EN_TRANSLATIONS, 'en');
+
     fixture = TestBed.createComponent(BudgetSectionComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
   });
 
@@ -75,7 +107,8 @@ describe('BudgetSectionComponent', () => {
 
   it('should display period label', () => {
     const content = fixture.nativeElement.textContent;
-    expect(content).toContain('August');
+    const currentMonth = new Date().toLocaleString('en-US', { month: 'long' });
+    expect(content).toContain(currentMonth);
   });
 
   it('should render budgets from service', () => {
@@ -118,9 +151,9 @@ describe('BudgetSectionComponent', () => {
   });
 
   it('should have adjust budgets button', () => {
-    const adjustButton = fixture.debugElement.query(By.css('button.uppercase.tracking-widest'));
-    expect(adjustButton).toBeTruthy();
-    expect(adjustButton.nativeElement.textContent.trim()).toContain('Adjust');
+    const adjustLink = fixture.debugElement.query(By.css('a.uppercase.tracking-widest'));
+    expect(adjustLink).toBeTruthy();
+    expect(adjustLink.nativeElement.textContent.trim()).toContain('Adjust');
   });
 
   it('should calculate progress width correctly', () => {

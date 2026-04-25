@@ -3,12 +3,23 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideRouter } from '@angular/router';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { TranslocoService, TranslocoTestingModule } from '@jsverse/transloco';
+import { signal } from '@angular/core';
 import { TransactionsComponent } from './transactions.component';
 import { TransactionService } from '../../core/services/transaction.service';
 import { CategoryService } from '../../core/services/category.service';
+import { PreferencesService } from '../../core/services/preferences.service';
 import { of, throwError } from 'rxjs';
 import { Transaction, Category } from '../../shared/models/transaction.model';
+
+const EN_TRANSLATIONS = {
+  'transactions.errorDescription': 'Description is required',
+  'transactions.errorAmount': 'Amount must be greater than 0',
+  'transactions.errorCategory': 'Category is required',
+  'transactions.errorDate': 'Date is required',
+};
 
 describe('TransactionsComponent CRUD', () => {
   let component: TransactionsComponent;
@@ -61,19 +72,38 @@ describe('TransactionsComponent CRUD', () => {
     const categoryServiceSpy = {
       getCategories: vi.fn().mockReturnValue(of(mockCategories)),
     };
+    const prefsServiceMock = {
+      currency: signal('USD'),
+      angularDateFormat: signal('MM/dd/yyyy'),
+      getPreferences: vi.fn().mockReturnValue(of(null)),
+    };
 
     await TestBed.configureTestingModule({
-      imports: [TransactionsComponent, NoopAnimationsModule],
+      imports: [
+        TransactionsComponent,
+        NoopAnimationsModule,
+        TranslocoTestingModule.forRoot({
+          langs: { en: EN_TRANSLATIONS },
+          translocoConfig: { defaultLang: 'en' },
+          preloadLangs: true,
+        }),
+      ],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         { provide: TransactionService, useValue: transactionServiceSpy },
         { provide: CategoryService, useValue: categoryServiceSpy },
+        { provide: PreferencesService, useValue: prefsServiceMock },
       ],
     }).compileComponents();
 
+    TestBed.inject(TranslocoService).setTranslation(EN_TRANSLATIONS, 'en');
+
     fixture = TestBed.createComponent(TransactionsComponent);
     component = fixture.componentInstance;
+    fixture.detectChanges();
+    await fixture.whenStable();
     fixture.detectChanges();
   });
 

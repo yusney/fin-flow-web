@@ -100,7 +100,7 @@ describe('AuthService', () => {
 
       service.login(email, password).subscribe({
         error: (error) => {
-          expect(error.message).toBe('Invalid token received');
+          expect(error.message).toBe('auth/invalid-token');
         },
       });
 
