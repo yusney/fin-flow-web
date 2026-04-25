@@ -28,7 +28,22 @@
     "password": "Contraseña",
     "signIn": "Iniciar Sesión",
     "signingIn": "Iniciando sesión…",
-    "demoHint": "Demo:"
+    "demoHint": "Demo:",
+    "noAccount": "¿No tenés cuenta?",
+    "createAccount": "Creá una"
+  },
+  "register": {
+    "title": "Crear cuenta",
+    "subtitle": "Empezá a gestionar tus finanzas hoy",
+    "name": "Nombre completo",
+    "confirmPassword": "Confirmar contraseña",
+    "passwordMismatch": "Las contraseñas no coinciden",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "register": "Crear Cuenta",
+    "registering": "Creando cuenta…",
+    "alreadyHaveAccount": "¿Ya tenés cuenta?",
+    "signIn": "Iniciá sesión",
+    "successMessage": "¡Cuenta creada! Redirigiendo al login…"
   },
   "dashboard": {
     "title": "Inicio",

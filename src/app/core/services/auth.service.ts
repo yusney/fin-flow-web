@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, Signal, computed, inject, signal } from '@angular/core';
+
 import { Observable, map, tap } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
@@ -94,6 +95,19 @@ export class AuthService {
       email: payload.email,
       name: payload.email.split('@')[0], // Fallback: use email prefix as name
     };
+  }
+
+  /**
+   * Registers a new user against the API.
+   * The API returns { id } on success — no token is issued.
+   * The caller is responsible for redirecting to login after registration.
+   */
+  register(name: string, email: string, password: string): Observable<{ id: string }> {
+    return this.http.post<{ id: string }>(`${environment.apiUrl}/auth/register`, {
+      name,
+      email,
+      password,
+    });
   }
 
   /**

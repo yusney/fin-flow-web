@@ -28,7 +28,22 @@
     "password": "Password",
     "signIn": "Sign In",
     "signingIn": "Signing in…",
-    "demoHint": "Demo:"
+    "demoHint": "Demo:",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create one"
+  },
+  "register": {
+    "title": "Create account",
+    "subtitle": "Start tracking your finances today",
+    "name": "Full name",
+    "confirmPassword": "Confirm password",
+    "passwordMismatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "register": "Create Account",
+    "registering": "Creating account…",
+    "alreadyHaveAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "successMessage": "Account created! Redirecting to login…"
   },
   "dashboard": {
     "title": "Dashboard",
