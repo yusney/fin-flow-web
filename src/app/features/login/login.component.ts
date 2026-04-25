@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { switchMap } from 'rxjs';
 
+import { AuthShellComponent } from '../../shared/components/auth-shell.component';
 import { AuthService } from '../../core/services/auth.service';
 import { LanguageService } from '../../core/services/language.service';
 import { PreferencesService } from '../../core/services/preferences.service';
@@ -12,112 +14,83 @@ import { PreferencesService } from '../../core/services/preferences.service';
 @Component({
   selector: 'app-login',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, TranslocoDirective, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    TranslocoDirective,
+    RouterLink,
+    AuthShellComponent,
+  ],
   template: `
-    <ng-container *transloco="let t">
-      <div class="min-h-screen bg-surface-container flex items-center justify-center p-6">
-        <div class="w-full max-w-sm">
-          <!-- Logo -->
-          <div class="flex flex-col items-center mb-10">
-            <img src="/logo.svg" alt="FinFlow" class="w-16 h-16 mb-4" />
-            <h1 class="text-2xl font-bold font-headline tracking-tight">
-              <span class="text-[#2563EB]">Fin</span><span class="text-[#10B981]">Flow</span>
-            </h1>
-            <p class="text-sm text-on-surface-variant mt-1">{{ t('login.tagline') }}</p>
-          </div>
-
-          <!-- Card -->
-          <div
-            class="bg-surface-container-lowest rounded-[var(--radius-card)] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.1)] border border-outline-variant/40"
-          >
-            <h2 class="text-lg font-semibold font-headline text-on-surface mb-1">
-              {{ t('login.welcomeBack') }}
-            </h2>
-            <p class="text-sm text-on-surface-variant mb-6">{{ t('login.signInSubtitle') }}</p>
-
-            @if (error()) {
-              <div
-                class="flex items-center gap-2 bg-error-container text-on-error-container text-sm rounded-[var(--radius-xl)] px-4 py-3 mb-6"
-              >
-                <span class="material-symbols-outlined text-[18px]">error</span>
-                {{ error() }}
-              </div>
-            }
-
-            <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
-              <!-- Email -->
-              <div class="flex flex-col gap-1.5">
-                <label for="email" class="text-xs font-medium text-on-surface-variant">
-                  {{ t('login.email') }}
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  formControlName="email"
-                  autocomplete="email"
-                  placeholder="alex@example.com"
-                  class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
-                />
-              </div>
-
-              <!-- Password -->
-              <div class="flex flex-col gap-1.5">
-                <label for="password" class="text-xs font-medium text-on-surface-variant">
-                  {{ t('login.password') }}
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  formControlName="password"
-                  autocomplete="current-password"
-                  placeholder="••••••••"
-                  class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
-                />
-              </div>
-
-              <!-- Submit -->
-              <button
-                type="submit"
-                [disabled]="form.invalid || loading()"
-                class="w-full bg-primary hover:bg-primary-container text-on-primary font-semibold rounded-[var(--radius-button)] px-6 py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-              >
-                @if (loading()) {
-                  <span class="flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined text-[18px] animate-spin"
-                      >progress_activity</span
-                    >
-                    {{ t('login.signingIn') }}
-                  </span>
-                } @else {
-                  {{ t('login.signIn') }}
-                }
-              </button>
-            </form>
-          </div>
-
-          <!-- Demo hint -->
-          <p class="text-center text-xs text-on-surface-variant mt-6">
-            {{ t('login.demoHint') }}
-            <span class="font-medium">demo&#64;finflow.com</span> /
-            <span class="font-medium">demo123</span>
-          </p>
-
-          <!-- Register link -->
-          <p class="text-center text-xs text-on-surface-variant mt-3">
-            {{ t('login.noAccount') }}
-            <a routerLink="/register" class="text-primary font-medium hover:underline">{{
-              t('login.createAccount')
-            }}</a>
-          </p>
+    <app-auth-shell
+      [tagline]="transloco.translate('login.tagline')"
+      [title]="transloco.translate('login.welcomeBack')"
+      [subtitle]="transloco.translate('login.signInSubtitle')"
+      [error]="error()"
+    >
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label for="email" class="text-xs font-medium text-on-surface-variant">
+            {{ transloco.translate('login.email') }}
+          </label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="email"
+            placeholder="alex@example.com"
+            class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+          />
         </div>
-      </div>
-    </ng-container>
+        <div class="flex flex-col gap-1.5">
+          <label for="password" class="text-xs font-medium text-on-surface-variant">
+            {{ transloco.translate('login.password') }}
+          </label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            class="w-full bg-surface-container px-4 py-3 rounded-[var(--radius-input)] text-sm text-on-surface placeholder:text-outline-variant border border-outline-variant focus:border-primary focus:outline-none transition-colors"
+          />
+        </div>
+        <button
+          type="submit"
+          [disabled]="form.invalid || loading()"
+          class="w-full bg-primary hover:bg-primary-container text-on-primary font-semibold rounded-[var(--radius-button)] px-6 py-3 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+        >
+          @if (loading()) {
+            <span class="flex items-center justify-center gap-2">
+              <span class="material-symbols-outlined text-[18px] animate-spin">progress_activity</span>
+              {{ transloco.translate('login.signingIn') }}
+            </span>
+          } @else {
+            {{ transloco.translate('login.signIn') }}
+          }
+        </button>
+      </form>
+
+      <p auth-footer class="text-center text-xs text-on-surface-variant mt-6">
+        {{ transloco.translate('login.demoHint') }}
+        <span class="font-medium">demo&#64;finflow.com</span> /
+        <span class="font-medium">demo123</span>
+      </p>
+
+      <p auth-footer class="text-center text-xs text-on-surface-variant mt-3">
+        {{ transloco.translate('login.noAccount') }}
+        <a routerLink="/register" class="text-primary font-medium hover:underline">{{
+          transloco.translate('login.createAccount')
+        }}</a>
+      </p>
+    </app-auth-shell>
   `,
 })
 export class LoginComponent {
+  readonly transloco = inject(TranslocoService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly preferencesService = inject(PreferencesService);
   private readonly languageService = inject(LanguageService);
 
@@ -129,7 +102,7 @@ export class LoginComponent {
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required, Validators.minLength(4)]],
+    password: ['', [Validators.required]],
   });
 
   onSubmit(): void {
@@ -142,7 +115,10 @@ export class LoginComponent {
 
     this.auth
       .login(email, password)
-      .pipe(switchMap(() => this.preferencesService.getPreferences()))
+      .pipe(
+        switchMap(() => this.preferencesService.getPreferences()),
+        takeUntilDestroyed(this.destroyRef),
+      )
       .subscribe({
         next: (prefs) => {
           if (prefs) {
@@ -151,10 +127,9 @@ export class LoginComponent {
           this._loading.set(false);
           this.router.navigate(['/dashboard']);
         },
-        error: (err: unknown) => {
+        error: () => {
           this._loading.set(false);
-          const msg = err instanceof Error ? err.message : 'Invalid credentials. Try again.';
-          this._error.set(msg);
+          this._error.set(this.transloco.translate('login.errorGeneric'));
         },
       });
   }
