@@ -32,25 +32,6 @@ export class AuthService {
 
   constructor() {
     this.loadFromStorage();
-    this.checkTokenExpiration();
-  }
-
-  /**
-   * Checks if the current token is expired.
-   * If expired, clears the session and redirects to login.
-   */
-  private checkTokenExpiration(): void {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const payload = this.decodeJwt(token);
-      if (payload && payload.exp) {
-        const expirationDate = new Date(payload.exp * 1000);
-        if (expirationDate < new Date()) {
-          // Token expired
-          this.logout();
-        }
-      }
-    }
   }
 
   /**
@@ -61,7 +42,7 @@ export class AuthService {
     if (!token) return false;
 
     const payload = this.decodeJwt(token);
-    if (!payload || !payload.exp) return false;
+    if (!this.isValidPayload(payload)) return false;
 
     const expirationDate = new Date(payload.exp * 1000);
     return expirationDate > new Date();
@@ -80,7 +61,9 @@ export class AuthService {
           .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
           .join(''),
       );
-      return JSON.parse(jsonPayload) as JwtPayload;
+      const parsed: unknown = JSON.parse(jsonPayload);
+      if (parsed === null || typeof parsed !== 'object') return null;
+      return parsed as JwtPayload;
     } catch {
       return null;
     }
@@ -124,8 +107,8 @@ export class AuthService {
         map(({ access_token }) => {
           localStorage.setItem('token', access_token);
           const payload = this.decodeJwt(access_token);
-          if (!payload) {
-            throw new Error('Invalid token received');
+          if (!this.isValidPayload(payload)) {
+            throw new Error('auth/invalid-token');
           }
           return this.userFromJwt(payload);
         }),
@@ -147,21 +130,53 @@ export class AuthService {
 
   /**
    * Rehydrates signals from localStorage on app initialization.
+   * Validates the stored token (expiry + required claims) before restoring user state.
    * Called in constructor so auth state persists across page reloads.
+   * Exposed as public to allow test setup; avoid calling from production code.
    */
   loadFromStorage(): void {
     const token = localStorage.getItem('token');
     const userRaw = localStorage.getItem('user');
 
-    if (token && userRaw) {
-      try {
-        const user: User = JSON.parse(userRaw);
-        this._currentUser.set(user);
-      } catch {
-        // Corrupted storage — clear and reset
-        this.logout();
-      }
+    if (!token || !userRaw) return;
+
+    const payload = this.decodeJwt(token);
+
+    if (!this.isValidPayload(payload)) {
+      // Token missing required claims — clear corrupted/incomplete session
+      this.logout();
+      return;
     }
+
+    const expirationDate = new Date(payload.exp * 1000);
+    if (expirationDate <= new Date()) {
+      // Token already expired at load time — no point restoring
+      this.logout();
+      return;
+    }
+
+    try {
+      const user: User = JSON.parse(userRaw);
+      this._currentUser.set(user);
+    } catch {
+      // Corrupted user JSON — clear and reset
+      this.logout();
+    }
+  }
+
+  /**
+   * Runtime validation of decoded JWT payload.
+   * Requires sub, email, and exp claims to be present and non-empty.
+   */
+  private isValidPayload(payload: JwtPayload | null): payload is JwtPayload {
+    return (
+      payload !== null &&
+      typeof payload.sub === 'string' &&
+      payload.sub.length > 0 &&
+      typeof payload.email === 'string' &&
+      payload.email.length > 0 &&
+      typeof payload.exp === 'number'
+    );
   }
 
   /**

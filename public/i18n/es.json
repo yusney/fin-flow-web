@@ -30,12 +30,16 @@
     "signingIn": "Iniciando sesión…",
     "demoHint": "Demo:",
     "noAccount": "¿No tenés cuenta?",
-    "createAccount": "Creá una"
+    "createAccount": "Creá una",
+    "errorGeneric": "Credenciales inválidas. Por favor, intentá de nuevo."
   },
   "register": {
     "title": "Crear cuenta",
     "subtitle": "Empezá a gestionar tus finanzas hoy",
+    "tagline": "The Digital Ledger",
     "name": "Nombre completo",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
     "confirmPassword": "Confirmar contraseña",
     "passwordMismatch": "Las contraseñas no coinciden",
     "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
@@ -43,7 +47,8 @@
     "registering": "Creando cuenta…",
     "alreadyHaveAccount": "¿Ya tenés cuenta?",
     "signIn": "Iniciá sesión",
-    "successMessage": "¡Cuenta creada! Redirigiendo al login…"
+    "successMessage": "¡Cuenta creada! Redirigiendo al login…",
+    "errorGeneric": "El registro falló. Por favor, intentá de nuevo."
   },
   "dashboard": {
     "title": "Inicio",

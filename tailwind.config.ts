@@ -52,6 +52,10 @@ export default {
         'error-container': '#ffdad6',
         'on-error': '#ffffff',
         'on-error-container': '#93000a',
+        success: '#16a34a',
+        'success-container': '#dcfce7',
+        'on-success': '#ffffff',
+        'on-success-container': '#166534',
       },
       fontFamily: {
         headline: ['Manrope', 'system-ui', 'sans-serif'],
