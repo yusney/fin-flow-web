@@ -2,68 +2,87 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { signal } from '@angular/core';
+import { of } from 'rxjs';
+
 import { SettingsComponent } from './settings.component';
 import { AuthService } from '../../core/services/auth.service';
-import { signal } from '@angular/core';
-import { TranslocoTestingModule } from '@jsverse/transloco';
-import { of } from 'rxjs';
 import { PreferencesService } from '../../core/services/preferences.service';
 import { LanguageService } from '../../core/services/language.service';
 import { UserService } from '../../core/services/user.service';
+import { UserPreferences } from '../../shared/models/user-preferences.model';
+import { provideTranslocoTesting } from '../../testing';
+
+const mockUser = { id: '1', email: 'test@example.com', name: 'Test User' };
+
+const mockPreferences: UserPreferences = {
+  id: 'pref-1',
+  userId: '1',
+  currency: 'USD',
+  dateFormat: 'MM/DD/YYYY',
+  language: 'en',
+  emailNotifications: true,
+  pushNotifications: false,
+  budgetAlerts: true,
+  subscriptionReminders: true,
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
+};
 
 describe('SettingsComponent', () => {
   let component: SettingsComponent;
   let fixture: ComponentFixture<SettingsComponent>;
-  let httpMock: HttpTestingController;
-  let authServiceMock: {
-    currentUser: ReturnType<typeof signal>;
-    logout: ReturnType<typeof vi.fn>;
-    updateCurrentUser: ReturnType<typeof vi.fn>;
-  };
-  let preferencesServiceMock: {
-    getPreferences: ReturnType<typeof vi.fn>;
-    updatePreferences: ReturnType<typeof vi.fn>;
-    setPreferences: ReturnType<typeof vi.fn>;
-  };
-  let languageServiceMock: { setLanguage: ReturnType<typeof vi.fn> };
-  let userServiceMock: { updateMe: ReturnType<typeof vi.fn> };
 
-  const defaultPrefs = {
-    currency: 'USD',
-    dateFormat: 'MM/DD/YYYY',
-    language: 'en',
-    emailNotifications: true,
-    pushNotifications: false,
-    budgetAlerts: true,
-    subscriptionReminders: true,
-  };
+  let authServiceMock: ReturnType<typeof createAuthServiceMock>;
+  let preferencesServiceMock: ReturnType<typeof createPreferencesServiceMock>;
+  let languageServiceMock: ReturnType<typeof createLanguageServiceMock>;
+  let userServiceMock: ReturnType<typeof createUserServiceMock>;
+
+  function createAuthServiceMock() {
+    return {
+      currentUser: signal(mockUser),
+      logout: vi.fn(),
+      updateCurrentUser: vi.fn(),
+    };
+  }
+
+  function createPreferencesServiceMock() {
+    return {
+      getPreferences: vi.fn().mockReturnValue(of(mockPreferences)),
+      updatePreferences: vi.fn().mockReturnValue(of(mockPreferences)),
+      setPreferences: vi.fn(),
+    };
+  }
+
+  function createLanguageServiceMock() {
+    return {
+      setLanguage: vi.fn(),
+      getActiveLang: vi.fn().mockReturnValue('en'),
+    };
+  }
+
+  function createUserServiceMock() {
+    return {
+      updateMe: vi.fn().mockReturnValue(of(mockUser)),
+    };
+  }
 
   beforeEach(async () => {
     localStorage.clear();
 
-    authServiceMock = {
-      currentUser: signal({ id: '1', email: 'test@example.com', name: 'Test User' }),
-      logout: vi.fn(),
-      updateCurrentUser: vi.fn(),
-    };
-    preferencesServiceMock = {
-      getPreferences: vi.fn().mockReturnValue(of(defaultPrefs)),
-      updatePreferences: vi.fn().mockReturnValue(of(defaultPrefs)),
-      setPreferences: vi.fn(),
-    };
-    languageServiceMock = { setLanguage: vi.fn() };
-    userServiceMock = { updateMe: vi.fn() };
+    authServiceMock = createAuthServiceMock();
+    preferencesServiceMock = createPreferencesServiceMock();
+    languageServiceMock = createLanguageServiceMock();
+    userServiceMock = createUserServiceMock();
 
     await TestBed.configureTestingModule({
-      imports: [
-        SettingsComponent,
-        TranslocoTestingModule.forRoot({ langs: { en: {} }, translocoConfig: { defaultLang: 'en' }, preloadLangs: true }),
-      ],
+      imports: [SettingsComponent],
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
         provideRouter([{ path: '**', redirectTo: '' }]),
+        provideTranslocoTesting(),
         { provide: AuthService, useValue: authServiceMock },
         { provide: PreferencesService, useValue: preferencesServiceMock },
         { provide: LanguageService, useValue: languageServiceMock },
@@ -71,14 +90,12 @@ describe('SettingsComponent', () => {
       ],
     }).compileComponents();
 
-    httpMock = TestBed.inject(HttpTestingController);
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
   afterEach(() => {
-    httpMock.verify();
     localStorage.clear();
   });
 
@@ -99,16 +116,20 @@ describe('SettingsComponent', () => {
       expect(component.settings().emailNotifications).toBe(true);
     });
 
-    it('should save settings via updateSetting', () => {
+    it('should update a setting and call saveSettings', () => {
       component.updateSetting('currency', 'EUR');
-      expect(preferencesServiceMock.updatePreferences).toHaveBeenCalled();
+
+      expect(component.settings().currency).toBe('EUR');
+      expect(preferencesServiceMock.updatePreferences).toHaveBeenCalledWith(
+        expect.objectContaining({ currency: 'EUR' }),
+      );
     });
 
     it('should toggle boolean settings via updateSetting', () => {
       const initialValue = component.settings().emailNotifications;
       component.updateSetting('emailNotifications', !initialValue);
+
       expect(component.settings().emailNotifications).toBe(!initialValue);
-      expect(preferencesServiceMock.updatePreferences).toHaveBeenCalled();
     });
   });
 

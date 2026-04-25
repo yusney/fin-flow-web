@@ -7,6 +7,7 @@ import {
 } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+
 import { provideTransloco } from '@jsverse/transloco';
 import { of, catchError, tap } from 'rxjs';
 
@@ -15,6 +16,7 @@ import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { TranslocoHttpLoader } from './core/transloco-loader';
 import { PreferencesService } from './core/services/preferences.service';
 import { LanguageService } from './core/services/language.service';
+import { loadConfig } from './core/services/config.loader';
 
 export function initializePreferences() {
   return () => {
@@ -32,7 +34,10 @@ export function initializePreferences() {
           languageService.setLanguage(prefs.language);
         }
       }),
-      catchError(() => of(null)),
+      catchError((err: unknown) => {
+        console.warn('[initializePreferences] Failed to load preferences', err);
+        return of(null);
+      }),
     );
   };
 }
@@ -51,6 +56,12 @@ export const appConfig: ApplicationConfig = {
       },
       loader: TranslocoHttpLoader,
     }),
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadConfig,
+      multi: true,
+      deps: [],
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initializePreferences,
