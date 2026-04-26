@@ -10,6 +10,9 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
+ARG GIT_SHA=dev
+RUN sed -i "s/version: '0.0.0'/version: '${GIT_SHA}'/" src/environments/environment.prod.ts
+
 RUN pnpm run build
 
 FROM nginx:1.27-alpine
