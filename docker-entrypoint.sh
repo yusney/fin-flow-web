@@ -8,4 +8,6 @@ else
   echo "Using default config.json"
 fi
 
-exec nginx -g 'daemon off;'
+# Do NOT exec nginx here — the Dockerfile CMD handles that.
+# Scripts in /docker-entrypoint.d/ are sourced by the nginx entrypoint,
+# which then proceeds to the CMD.
